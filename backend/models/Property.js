@@ -14,10 +14,14 @@ const propertySchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: String,
 
+    videoUrl: String,
+
     price: Number,
     priceUnit: { type: String, default: "Lac" },
     negotiable: { type: Boolean, default: false },
     gstApplicable: { type: String },
+
+    bookingAmount: Number,
 
     area: {
       totalSqft: Number,
@@ -124,6 +128,7 @@ const propertySchema = new mongoose.Schema(
     facing: String,
     constructionStatus: String,
     propertyAge: String,
+    ageOfProperty: String,
     allowedFor: String,
     petFriendly: String,
 

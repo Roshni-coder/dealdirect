@@ -7,14 +7,16 @@ import {
   ArrowLeftIcon,
   UserCircleIcon,
   FlagIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "react-toastify";
+import VisitModal from "../VisitModal/VisitModal";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 // Chat Message Component
-const ChatMessage = ({ message, isOwn, onReport }) => {
+const ChatMessage = ({ message, isOwn, onReport, canAcceptVisit, onAcceptVisit }) => {
   const formatTime = (date) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -42,6 +44,16 @@ const ChatMessage = ({ message, isOwn, onReport }) => {
         <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
           {message.text}
         </p>
+
+        {/* Visit request actions for property owner */}
+        {message.messageType === "visit_request" && !isOwn && canAcceptVisit && (
+          <button
+            onClick={() => onAcceptVisit && onAcceptVisit(message)}
+            className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition"
+          >
+            Accept Visit
+          </button>
+        )}
         <p
           className={`text-[10px] mt-1 ${isOwn ? "text-blue-100" : "text-gray-500"
             }`}
@@ -142,10 +154,13 @@ const ChatWidget = () => {
     leaveConversation,
     unreadCount,
     reportMessage,
+    sendVisitMessage,
   } = useChat();
 
   const [messageText, setMessageText] = useState("");
   const [showConversations, setShowConversations] = useState(true);
+  const [showActions, setShowActions] = useState(false);
+  const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
@@ -156,6 +171,18 @@ const ChatWidget = () => {
   const [isReporting, setIsReporting] = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  // Keep view (list vs messages) in sync with whether a
+  // conversation is selected when the widget is opened.
+  useEffect(() => {
+    if (!isChatOpen) return;
+
+    if (currentConversation) {
+      setShowConversations(false);
+    } else {
+      setShowConversations(true);
+    }
+  }, [isChatOpen, currentConversation]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -170,6 +197,52 @@ const ChatWidget = () => {
     await sendMessage(currentConversation._id, messageText.trim());
     setMessageText("");
     emitStopTyping(currentConversation._id);
+  };
+
+  const handleOpenVisitModal = () => {
+    if (!currentConversation || !currentConversation.property) {
+      toast.error("Site visit is only available for property conversations.");
+      return;
+    }
+    setShowActions(false);
+    setIsVisitModalOpen(true);
+  };
+
+  const handleConfirmVisit = async ({ date, time }) => {
+    if (!currentConversation) return;
+
+    const propertyTitle = currentConversation.property?.title || "Property";
+    const text = `Site visit requested for "${propertyTitle}" on ${date} at ${time}.`;
+
+    const res = await sendVisitMessage(
+      currentConversation._id,
+      text,
+      "visit_request"
+    );
+
+    if (res) {
+      toast.success("Site visit request sent to owner.");
+    } else {
+      toast.error("Failed to send site visit request.");
+    }
+  };
+
+  const handleAcceptVisit = async (message) => {
+    if (!currentConversation) return;
+
+    const text = `Site visit request accepted. ${message.text}`;
+
+    const res = await sendVisitMessage(
+      currentConversation._id,
+      text,
+      "visit_confirmation"
+    );
+
+    if (res) {
+      toast.success("Visit accepted and buyer notified.");
+    } else {
+      toast.error("Failed to accept visit request.");
+    }
   };
 
   // Handle typing
@@ -239,6 +312,8 @@ const ChatWidget = () => {
     if (img.startsWith("/uploads")) return `${API_BASE}${img}`;
     return `${API_BASE}/uploads/${img}`;
   };
+
+  const isOwner = currentConversation?.isOwner;
 
   if (!isChatOpen) return null;
 
@@ -363,6 +438,8 @@ const ChatWidget = () => {
                       message={msg}
                       isOwn={msg.sender?._id === currentUser._id}
                       onReport={onReportClick}
+                      canAcceptVisit={Boolean(isOwner)}
+                      onAcceptVisit={handleAcceptVisit}
                     />
                   ))}
                   {isTyping && isTyping.userId !== currentUser._id && (
@@ -380,25 +457,59 @@ const ChatWidget = () => {
               )}
             </div>
 
-            {/* Message Input */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={messageText}
-                  onChange={handleTyping}
-                  placeholder="Type a message..."
-                  className="flex-1 px-4 py-2.5 rounded-full border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={!messageText.trim()}
-                  className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            {/* Message Input + actions */}
+            <div className="relative">
+              {/* Quick actions menu (buyer side) */}
+              {!isOwner && (
+                <div
+                  className={`absolute bottom-16 left-3 z-10 transition-opacity ${
+                    showActions ? "opacity-100" : "opacity-0 pointer-events-none"
+                  }`}
                 >
-                  <PaperAirplaneIcon className="w-5 h-5" />
-                </button>
-              </div>
-            </form>
+                  <div className="bg-white border border-gray-200 rounded-xl shadow-lg py-2 w-48">
+                    <button
+                      type="button"
+                      onClick={handleOpenVisitModal}
+                      className="w-full text-left px-3 py-2 text-xs text-gray-800 hover:bg-gray-50"
+                    >
+                      Reserve a Site Visit
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <form
+                onSubmit={handleSendMessage}
+                className="p-3 border-t border-gray-200 bg-gray-50"
+              >
+                <div className="flex items-center gap-2">
+                  {!isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => setShowActions((prev) => !prev)}
+                      className="ml-1 p-2 rounded-full border border-gray-300 bg-white text-gray-600 hover:bg-gray-100 hover:border-blue-400 transition"
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  <input
+                    type="text"
+                    value={messageText}
+                    onChange={handleTyping}
+                    placeholder="Type a message..."
+                    className="flex-1 px-4 py-2.5 rounded-full border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!messageText.trim()}
+                    className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <PaperAirplaneIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
@@ -453,6 +564,16 @@ const ChatWidget = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Site Visit Modal (opened from + menu) */}
+        {isVisitModalOpen && currentConversation?.property && (
+          <VisitModal
+            isOpen={isVisitModalOpen}
+            onClose={() => setIsVisitModalOpen(false)}
+            propertyTitle={currentConversation.property.title}
+            onConfirm={handleConfirmVisit}
+          />
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@ import { cloudinary } from "../middleware/upload.js";
 import mongoose from "mongoose";
 import Lead from "../models/Lead.js";
 import User from "../models/userModel.js";
+import Report from "../models/Report.js";
 
 const isCloudinaryUrl = (img = "") => typeof img === "string" && img.includes("cloudinary.com");
 
@@ -159,6 +160,18 @@ export const addProperty = async (req, res) => {
       data.owner = req.user._id;
     }
 
+    // Business rule: a real owner account can publish only one property
+    if (req.user?.role === "owner") {
+      const existingCount = await Property.countDocuments({ owner: req.user._id });
+      if (existingCount >= 1) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "You can only list one property with an owner account. Please edit your existing listing instead.",
+        });
+      }
+    }
+
     // Ensure latitude and longitude are properly set in address
     if (data.address) {
       // Handle coordinates object if sent (backward compatibility)
@@ -228,6 +241,65 @@ export const getPropertyById = async (req, res) => {
     res.json(withPublicImages(req, prop));
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+// Report a Property
+export const reportProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!req.user?._id) {
+      return res.status(401).json({ success: false, message: "Not authorized" });
+    }
+
+    const trimmedReason = (reason || "").trim();
+    if (!trimmedReason || trimmedReason.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a brief reason (at least 10 characters).",
+      });
+    }
+
+    const property = await Property.findById(id).select("_id title owner");
+    if (!property) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Property not found" });
+    }
+
+    // Prevent duplicate active reports from the same user on the same property
+    const existing = await Report.findOne({
+      contextType: "property",
+      property: property._id,
+      reportedBy: req.user._id,
+      status: { $in: ["pending", "reviewed"] },
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already reported this property. Our team is reviewing it.",
+      });
+    }
+
+    const report = await Report.create({
+      reportedBy: req.user._id,
+      contextType: "property",
+      property: property._id,
+      reason: trimmedReason,
+      status: "pending",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Thank you. Your report has been submitted to the admin team.",
+      data: report,
+    });
+  } catch (err) {
+    console.error("Report Property Error:", err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -764,6 +836,19 @@ export const markInterested = async (req, res) => {
       return res.status(404).json({ success: false, message: "Property not found" });
     }
 
+    // Enforce: a buyer can only be interested in up to 5 properties
+    const currentInterestCount = await Property.countDocuments({
+      "interestedUsers.user": userId,
+    });
+
+    if (currentInterestCount >= 5) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "You can show interest in a maximum of 5 properties. Please remove one from your saved list before adding another.",
+      });
+    }
+
     // Check if user is the owner (can't be interested in own property)
     if (property.owner && property.owner.toString() === userId.toString()) {
       return res.status(400).json({ success: false, message: "You cannot express interest in your own property" });
@@ -834,6 +919,46 @@ export const markInterested = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in markInterested:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 🔒 Protected: Remove Interest in a Property (Buyer)
+export const removeInterest = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const propertyId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(propertyId)) {
+      return res.status(400).json({ success: false, message: "Invalid property ID" });
+    }
+
+    const property = await Property.findById(propertyId);
+    if (!property) {
+      return res.status(404).json({ success: false, message: "Property not found" });
+    }
+
+    const wasInterested = property.interestedUsers?.some(
+      (item) => item.user && item.user.toString() === userId.toString()
+    );
+
+    if (!wasInterested) {
+      return res.status(400).json({ success: false, message: "You have not expressed interest in this property" });
+    }
+
+    await Property.findByIdAndUpdate(propertyId, {
+      $pull: { interestedUsers: { user: userId } },
+      $inc: { likes: -1 }
+    });
+
+    console.log(`User ${userId} removed interest from property ${propertyId}`);
+
+    res.status(200).json({
+      success: true,
+      message: "Interest removed successfully"
+    });
+  } catch (error) {
+    console.error("Error in removeInterest:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -1234,17 +1359,24 @@ export const getAdminProperties = async (req, res) => {
             // If 'all', we don't filter by isApproved (returns both)
         }
 
-        // 2. Search Filter (Checks Title, City (root & nested), State, Area)
+        // 2. Search Filter (Checks Title, City (root & nested), State, Area, and optionally ID)
         if (search) {
-            const regex = new RegExp(search, 'i'); // Case insensitive
-            query.$or = [
-                { title: regex },
-                { city: regex },             // Check root level city
-                { "address.city": regex },   // Check nested address city
-                { "address.state": regex },  // Check nested state
-                { "address.area": regex },   // Check nested area/locality
-                { "address.line": regex }    // Check full address line
-            ];
+          const regex = new RegExp(search, 'i'); // Case insensitive
+          const orConditions = [
+            { title: regex },
+            { city: regex },             // Check root level city
+            { "address.city": regex },   // Check nested address city
+            { "address.state": regex },  // Check nested state
+            { "address.area": regex },   // Check nested area/locality
+            { "address.line": regex }    // Check full address line
+          ];
+
+          // If search looks like a valid ObjectId, also match by _id
+          if (mongoose.Types.ObjectId.isValid(search)) {
+            orConditions.push({ _id: search });
+          }
+
+          query.$or = orConditions;
         }
 
         // 3. Date Range Filter

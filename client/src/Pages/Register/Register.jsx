@@ -3,13 +3,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { User, Mail, Lock, Eye, EyeOff, Loader2, CheckCircle, ShieldCheck, RefreshCw, Home, Search } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, Loader2, CheckCircle, ShieldCheck, RefreshCw, Home, Search, Phone } from "lucide-react";
 import dealDirectLogo from "../../assets/dealdirect_logo.png";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 export default function Register() {
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", agree: false });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "", agree: false });
   const [userType, setUserType] = useState("buyer"); // "buyer" or "owner"
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1); // 1: Details, 2: OTP (only for owners)
@@ -34,13 +34,29 @@ export default function Register() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+    let newValue = type === "checkbox" ? checked : value;
+
+    if (name === "phone") {
+      newValue = newValue.replace(/[^0-9]/g, "").slice(0, 10);
+    }
+
+    setFormData((f) => ({ ...f, [name]: newValue }));
   };
 
   // Handle registration - different flow for buyer vs owner
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!formData.agree) return toast.error("Please accept the Terms & Privacy Policy");
+
+    if (!formData.phone) {
+      toast.error("Please enter your phone number");
+      return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(formData.phone.trim())) {
+      toast.error("Please enter a valid 10-digit phone number");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -50,7 +66,8 @@ export default function Register() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: "user"
+          role: "user",
+          phone: formData.phone,
         });
 
         const { token, user } = res.data;
@@ -66,7 +83,8 @@ export default function Register() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: "owner"
+          role: "owner",
+          phone: formData.phone,
         });
 
         toast.success("OTP sent to your email! Please verify to complete registration.");
@@ -231,6 +249,28 @@ export default function Register() {
                         className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-blue-900 transition-colors outline-none text-slate-800"
                       />
                     </div>
+                  </div>
+
+                  {/* Phone Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 block">Phone Number</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Phone className="h-5 w-5 text-slate-400" />
+                      </div>
+                      <input
+                        type="tel"
+                        name="phone"
+                        placeholder="10-digit mobile number"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                        className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-blue-900 transition-colors outline-none text-slate-800"
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Used for important updates about your account and visits.
+                    </p>
                   </div>
 
                   {/* Email Input */}

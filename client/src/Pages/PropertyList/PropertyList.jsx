@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import {
   FaMapMarkerAlt,
   FaSearch,
@@ -9,6 +10,7 @@ import {
   FaBath,
   FaRulerCombined,
   FaRegHeart,
+  FaHeart,
   FaList,
   FaMap,
   FaCrosshairs,
@@ -274,6 +276,8 @@ const PropertyPage = () => {
   const [cities, setCities] = useState([]);
   const [viewMode, setViewMode] = useState("list"); // "list" or "map"
   const [hoveredProperty, setHoveredProperty] = useState(null);
+  const [interestedIds, setInterestedIds] = useState(() => new Set());
+  const [interestLoadingIds, setInterestLoadingIds] = useState(() => new Set());
 
   // Pin drop states
   const [pinDropMode, setPinDropMode] = useState(false);
@@ -300,7 +304,34 @@ const PropertyPage = () => {
 
   const FALLBACK_IMG = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800";
 
+  const formatCategoryDisplay = (name) => {
+    const value = (name || "").toString();
+    const lower = value.toLowerCase();
+    if (lower.includes("commercial land")) return "Commercial Property";
+    if (lower.includes("commercial property")) return "Commercial Property";
+    if (lower.includes("residential land") || lower.includes("residential plot")) return "Residential Property";
+    if (lower.includes("residential")) return "Residential Property";
+    if (lower.includes("commercial")) return "Commercial Property";
+    return value || "Property";
+  };
+
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
+
+  // Apply post-login interest state passed via navigation state
+  useEffect(() => {
+    const postLoginInterestId = location.state?.interestedPropertyId;
+    if (!postLoginInterestId) return;
+
+    setInterestedIds((prev) => {
+      const updated = new Set(prev);
+      updated.add(postLoginInterestId);
+      return updated;
+    });
+
+    const newState = { ...(location.state || {}) };
+    delete newState.interestedPropertyId;
+    navigate(location.pathname + location.search, { replace: true, state: newState });
+  }, [location.state, location.pathname, location.search, navigate]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -536,8 +567,8 @@ const PropertyPage = () => {
     })).sort((a, b) => a.distance - b.distance);
   }, [propertiesWithCoords, droppedPin, searchRadius]);
 
-  // Get map center based on properties or default to India center
-  const getMapCenter = () => {
+  // Get map center based on properties or default to India center (memoized to avoid re-centering on hover)
+  const mapCenter = useMemo(() => {
     if (droppedPin) {
       return [droppedPin.lat, droppedPin.lng];
     }
@@ -547,7 +578,7 @@ const PropertyPage = () => {
       return [avgLat, avgLng];
     }
     return [20.5937, 78.9629]; // India center
-  };
+  }, [droppedPin, propertiesWithCoords]);
 
   // Map click handler component
   const MapClickHandler = () => {
@@ -580,6 +611,84 @@ const PropertyPage = () => {
 
   const viewDetails = (property) =>
     navigate(`/properties/${property._id}`, { state: { property } });
+
+  const handleInterest = async (event, propertyId) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+
+    if (!token || !user) {
+      toast.info("Please login to express interest");
+      const from = `${location.pathname}${location.search}` || `/properties/${propertyId}`;
+      navigate("/login", { state: { from, pendingAction: "interest", propertyId } });
+      return;
+    }
+
+    if (interestedIds.has(propertyId)) {
+      // Remove interest
+      setInterestLoadingIds((prev) => new Set(prev).add(propertyId));
+      try {
+        const res = await axios.delete(
+          `${API_BASE}/api/properties/interested/${propertyId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (res.data.success) {
+          setInterestedIds((prev) => {
+            const updated = new Set(prev);
+            updated.delete(propertyId);
+            return updated;
+          });
+          toast.success("Interest removed");
+        } else {
+          toast.error(res.data.message || "Failed to remove interest");
+        }
+      } catch (error) {
+        console.error("Error removing interest:", error);
+        const errorMsg = error.response?.data?.message || "Failed to remove interest";
+        toast.error(errorMsg);
+      } finally {
+        setInterestLoadingIds((prev) => {
+          const updated = new Set(prev);
+          updated.delete(propertyId);
+          return updated;
+        });
+      }
+      return;
+    }
+
+    setInterestLoadingIds((prev) => new Set(prev).add(propertyId));
+
+    try {
+      const res = await axios.post(
+        `${API_BASE}/api/properties/interested/${propertyId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        setInterestedIds((prev) => {
+          const updated = new Set(prev);
+          updated.add(propertyId);
+          return updated;
+        });
+        toast.success("Interest registered! The owner will be notified.");
+      } else {
+        toast.error(res.data.message || "Failed to register interest");
+      }
+    } catch (error) {
+      console.error("Error registering interest:", error);
+      const errorMsg = error.response?.data?.message || "Failed to register interest";
+      toast.error(errorMsg);
+    } finally {
+      setInterestLoadingIds((prev) => {
+        const updated = new Set(prev);
+        updated.delete(propertyId);
+        return updated;
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 -mt-10 lg:-mt-8">
@@ -907,7 +1016,7 @@ const PropertyPage = () => {
               </div>
 
               <MapContainer
-                center={getMapCenter()}
+                center={mapCenter}
                 zoom={11}
                 className={`w-full h-full z-0 ${pinDropMode ? 'cursor-crosshair' : ''}`}
                 scrollWheelZoom={true}
@@ -1047,11 +1156,19 @@ const PropertyPage = () => {
                 <div className="relative h-64 overflow-hidden">
                   <div className="absolute top-3 left-3 z-10">
                     <span className="bg-white/95 backdrop-blur-sm text-slate-800 text-xs font-bold px-3 py-1 rounded-md shadow-sm">
-                      {p.category?.name || "For Sale"}
+                      {formatCategoryDisplay(p.category?.name || p.categoryName || p.category || p.propertyCategory || "For Sale")}
                     </span>
                   </div>
-                  <button className="absolute top-3 right-3 z-10 p-2 bg-black/20 hover:bg-red-500 backdrop-blur-sm rounded-full text-white transition-colors">
-                    <FaRegHeart />
+                  <button
+                    type="button"
+                    onClick={(e) => handleInterest(e, p._id)}
+                    disabled={interestLoadingIds.has(p._id)}
+                    className={`absolute top-3 right-3 z-10 p-2 backdrop-blur-sm rounded-full transition-colors ${interestedIds.has(p._id)
+                      ? "bg-red-600 text-white"
+                      : "bg-black/20 text-white hover:bg-red-500"}${interestLoadingIds.has(p._id) ? " opacity-70 cursor-not-allowed" : ""}`}
+                    aria-label={interestedIds.has(p._id) ? "Interest registered" : "I'm interested"}
+                  >
+                    {interestedIds.has(p._id) ? <FaHeart /> : <FaRegHeart />}
                   </button>
                   <img
                     src={resolveImageSrc(p.images?.[0]) || FALLBACK_IMG}

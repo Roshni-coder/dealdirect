@@ -3,20 +3,22 @@ import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, Loader2, X, ArrowLeft, KeyRound, CheckCircle, AlertTriangle } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, X, ArrowLeft, KeyRound, CheckCircle, AlertTriangle, Phone } from "lucide-react";
 import dealDirectLogo from "../../assets/dealdirect_logo.png";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
 export default function Login() {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "", phone: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get the redirect path from state (if user was redirected here)
+  // Get the redirect path and any pending action from state (if user was redirected here)
   const redirectPath = location.state?.from || "/";
+  const pendingAction = location.state?.pendingAction;
+  const pendingPropertyId = location.state?.propertyId;
 
   // Blocked user state
   const [blockedError, setBlockedError] = useState(null);
@@ -32,16 +34,35 @@ export default function Login() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
 
-  const handleChange = (e) =>
-    setFormData((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let newValue = value;
+
+    if (name === "phone") {
+      newValue = newValue.replace(/[^0-9]/g, "").slice(0, 10);
+    }
+
+    setFormData((f) => ({ ...f, [name]: newValue }));
+  };
+
+  const isValidPhone = (phone) => {
+    const cleaned = (phone || "").trim();
+    if (!cleaned) return false;
+    return /^[6-9]\d{9}$/.test(cleaned);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.phone && !isValidPhone(formData.phone)) {
+      toast.error("Please enter a valid 10-digit phone number");
+      return;
+    }
     setIsLoading(true);
     setBlockedError(null); // Clear any previous blocked error
 
     try {
-      const res = await axios.post(`${API_BASE}/api/users/login`, formData);
+      const payload = { email: formData.email, password: formData.password };
+      const res = await axios.post(`${API_BASE}/api/users/login`, payload);
       const { token, user } = res.data;
 
       localStorage.setItem("token", token);
@@ -51,9 +72,31 @@ export default function Login() {
       window.dispatchEvent(new Event("auth-change"));
 
       toast.success(`Welcome back, ${user.name || 'User'}!`);
+      let navigationState = location.state ? { ...location.state } : undefined;
+
+      // If user was trying to express interest before login, complete it automatically
+      if (pendingAction === "interest" && pendingPropertyId) {
+        try {
+          await axios.post(
+            `${API_BASE}/api/properties/interested/${pendingPropertyId}`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          toast.success("Interest registered! The owner will be notified.");
+          navigationState = { ...navigationState, interestedPropertyId: pendingPropertyId };
+        } catch (interestErr) {
+          const msg = interestErr.response?.data?.message || "Failed to register interest";
+          toast.error(msg);
+        }
+      }
+
+      if (navigationState) {
+        delete navigationState.pendingAction;
+        delete navigationState.propertyId;
+      }
 
       // Redirect to the original page user was trying to access, or home
-      navigate(redirectPath);
+      navigate(redirectPath, { state: navigationState });
     } catch (err) {
       const errorData = err.response?.data;
 
@@ -235,6 +278,26 @@ export default function Login() {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-blue-900 transition-colors outline-none text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* Phone Input (Optional) */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 block">
+                  Phone Number <span className="text-xs text-slate-400">(optional)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Phone className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="10-digit mobile number"
+                    value={formData.phone}
+                    onChange={handleChange}
                     className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-blue-900 transition-colors outline-none text-slate-800"
                   />
                 </div>

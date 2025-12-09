@@ -190,28 +190,164 @@ const IMAGE_CATEGORIES = {
             { key: "floorPlan", label: "Floor Plan", maxImages: 1, tip: "2D layout if available" },
             { key: "other", label: "Other Areas", maxImages: 5, tip: "Amenities, garden, pool, etc." }
         ],
-        // ... (Other Residential types assumed present as per previous code)
-        "Independent House": [{ key: "exterior", label: "House Exterior", maxImages: 4 }, { key: "livingRoom", label: "Living Room", maxImages: 3 }],
-        "Villa": [{ key: "exterior", label: "Villa Exterior", maxImages: 5 }],
-        "Builder Floor": [{ key: "exterior", label: "Building Exterior", maxImages: 2 }],
-        "Studio Apartment": [{ key: "livingRoom", label: "Studio Space", maxImages: 4 }],
-        "Penthouse": [{ key: "exterior", label: "Building & Terrace", maxImages: 4 }],
-        "Row House": [{ key: "exterior", label: "House Exterior", maxImages: 3 }],
-        "Farm House": [{ key: "exterior", label: "Property Exterior", maxImages: 5 }]
+        "Independent House": [
+            { key: "exterior", label: "House Exterior", maxImages: 4 },
+            { key: "livingRoom", label: "Living Room", maxImages: 3 },
+            { key: "bedroom", label: "Bedroom(s)", maxImages: 4 },
+            { key: "bathroom", label: "Bathroom(s)", maxImages: 3 },
+            { key: "kitchen", label: "Kitchen", maxImages: 2 },
+            { key: "garden", label: "Garden/Lawn", maxImages: 3 },
+            { key: "parking", label: "Parking", maxImages: 2 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Villa": [
+            { key: "exterior", label: "Villa Exterior", maxImages: 5 },
+            { key: "livingRoom", label: "Living Room", maxImages: 4 },
+            { key: "bedroom", label: "Bedroom(s)", maxImages: 5 },
+            { key: "bathroom", label: "Bathroom(s)", maxImages: 3 },
+            { key: "kitchen", label: "Kitchen", maxImages: 2 },
+            { key: "garden", label: "Garden", maxImages: 3 },
+            { key: "balcony", label: "Balcony / Terrace", maxImages: 3 },
+            { key: "parking", label: "Parking", maxImages: 2 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Builder Floor": [
+            { key: "exterior", label: "Building Exterior", maxImages: 2 },
+            { key: "livingRoom", label: "Living Room", maxImages: 3 },
+            { key: "bedroom", label: "Bedrooms", maxImages: 4 },
+            { key: "bathroom", label: "Bathroom(s)", maxImages: 3 },
+            { key: "kitchen", label: "Kitchen", maxImages: 2 },
+            { key: "balcony", label: "Balcony", maxImages: 2 },
+            { key: "parking", label: "Parking", maxImages: 2 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Studio Apartment": [
+            { key: "livingRoom", label: "Studio Space", maxImages: 4 },
+            { key: "kitchen", label: "Kitchen", maxImages: 2 },
+            { key: "bathroom", label: "Bathroom", maxImages: 2 },
+            { key: "balcony", label: "Balcony / Sit-out", maxImages: 2 },
+            { key: "other", label: "Other", maxImages: 3 }
+        ],
+        "Penthouse": [
+            { key: "exterior", label: "Building & Terrace", maxImages: 4 },
+            { key: "livingRoom", label: "Living Area", maxImages: 4 },
+            { key: "bedroom", label: "Bedroom(s)", maxImages: 4 },
+            { key: "bathroom", label: "Bathroom(s)", maxImages: 3 },
+            { key: "kitchen", label: "Kitchen", maxImages: 2 },
+            { key: "balcony", label: "Balcony", maxImages: 2 },
+            { key: "hall", label: "Lobby / Passage", maxImages: 2 },
+            { key: "parking", label: "Parking", maxImages: 2 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Row House": [
+            { key: "exterior", label: "House Exterior", maxImages: 3 },
+            { key: "livingRoom", label: "Living Room", maxImages: 3 },
+            { key: "bedroom", label: "Bedrooms", maxImages: 4 },
+            { key: "bathroom", label: "Bathroom(s)", maxImages: 3 },
+            { key: "kitchen", label: "Kitchen", maxImages: 2 },
+            { key: "garden", label: "Garden / Front Yard", maxImages: 3 },
+            { key: "parking", label: "Parking", maxImages: 2 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Farm House": [
+            { key: "exterior", label: "Property Exterior", maxImages: 5 },
+            { key: "livingRoom", label: "Living Space", maxImages: 3 },
+            { key: "bedroom", label: "Bedrooms / Guest Rooms", maxImages: 4 },
+            { key: "bathroom", label: "Bathroom(s)", maxImages: 3 },
+            { key: "kitchen", label: "Kitchen", maxImages: 2 },
+            { key: "garden", label: "Garden / Lawn", maxImages: 5 },
+            { key: "parking", label: "Parking / Driveway", maxImages: 3 },
+            { key: "floorPlan", label: "Floor / Site Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ]
     },
     Commercial: {
+        // These keys are aligned with Property.categorizedImages.commercial
         "Office Space": [
-            { key: "facade", label: "Building Exterior", maxImages: 3, tip: "Building facade and entrance" },
-            { key: "workArea", label: "Work Area", maxImages: 4, tip: "Main working floor" }
+            { key: "facade", label: "Building Exterior", maxImages: 4, tip: "Building facade and entrance" },
+            { key: "reception", label: "Reception / Lobby", maxImages: 3, tip: "Front desk and waiting area" },
+            { key: "workArea", label: "Open Work Area", maxImages: 6, tip: "Main working floor, desks and cubicles" },
+            { key: "cabin", label: "Cabins / Private Rooms", maxImages: 4, tip: "Manager and private cabins" },
+            { key: "conferenceRoom", label: "Conference / Meeting Rooms", maxImages: 3, tip: "Conference and huddle rooms" },
+            { key: "pantry", label: "Pantry / Cafeteria", maxImages: 3, tip: "Pantry, tea/coffee area" },
+            { key: "washroom", label: "Washrooms", maxImages: 3, tip: "Restrooms for staff and visitors" },
+            { key: "parking", label: "Parking Area", maxImages: 3, tip: "Covered / open parking" },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1, tip: "2D layout if available" },
+            { key: "other", label: "Other Areas", maxImages: 5, tip: "Server room, terrace, utilities, etc." }
         ],
-        // ... (Other Commercial types assumed present)
-        "Shop / Retail": [{ key: "facade", label: "Shop Front", maxImages: 3 }],
-        "Showroom": [{ key: "facade", label: "Showroom Facade", maxImages: 4 }],
-        "Restaurant / Cafe": [{ key: "facade", label: "Restaurant Exterior", maxImages: 3 }],
-        "Co-Working Space": [{ key: "workArea", label: "Open Desk Area", maxImages: 4 }],
-        "Warehouse / Godown": [{ key: "warehouse", label: "Storage Area", maxImages: 5 }],
-        "Industrial Shed": [{ key: "warehouse", label: "Main Floor", maxImages: 5 }],
-        "Commercial Building / Floor": [{ key: "facade", label: "Building Exterior", maxImages: 3 }]
+        "Shop / Retail": [
+            { key: "facade", label: "Shop Front / Facade", maxImages: 4, tip: "Street view and entrance" },
+            { key: "shopFloor", label: "Shop Floor", maxImages: 6, tip: "Main retail floor and aisles" },
+            { key: "displayArea", label: "Display / Window Area", maxImages: 4, tip: "Display racks and windows" },
+            { key: "storageArea", label: "Back Storage / Inventory", maxImages: 4, tip: "Stock room and storage" },
+            { key: "washroom", label: "Washrooms", maxImages: 2 },
+            { key: "parking", label: "Customer Parking", maxImages: 3 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other Areas", maxImages: 5 }
+        ],
+        "Showroom": [
+            { key: "facade", label: "Showroom Exterior", maxImages: 4 },
+            { key: "reception", label: "Reception / Front Desk", maxImages: 3 },
+            { key: "displayArea", label: "Display Area", maxImages: 6 },
+            { key: "seatingArea", label: "Customer Seating / Lounge", maxImages: 3 },
+            { key: "storageArea", label: "Back Office / Storage", maxImages: 3 },
+            { key: "parking", label: "Parking", maxImages: 3 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other Areas", maxImages: 5 }
+        ],
+        "Restaurant / Cafe": [
+            { key: "facade", label: "Exterior / Entrance", maxImages: 4 },
+            { key: "seatingArea", label: "Dining / Seating Area", maxImages: 6 },
+            { key: "kitchenCommercial", label: "Commercial Kitchen", maxImages: 4 },
+            { key: "washroom", label: "Washrooms", maxImages: 3 },
+            { key: "storageArea", label: "Storage / Prep Area", maxImages: 3 },
+            { key: "parking", label: "Parking / Valet Area", maxImages: 3 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other Areas", maxImages: 5 }
+        ],
+        "Co-Working Space": [
+            { key: "facade", label: "Exterior", maxImages: 3 },
+            { key: "reception", label: "Reception / Entry", maxImages: 3 },
+            { key: "workArea", label: "Open Desk Area", maxImages: 6 },
+            { key: "cabin", label: "Private Cabins", maxImages: 4 },
+            { key: "conferenceRoom", label: "Meeting / Conference Rooms", maxImages: 3 },
+            { key: "seatingArea", label: "Lounge / Breakout", maxImages: 3 },
+            { key: "pantry", label: "Pantry / Cafe", maxImages: 3 },
+            { key: "other", label: "Other Areas", maxImages: 5 }
+        ],
+        "Warehouse / Godown": [
+            { key: "facade", label: "Warehouse Exterior", maxImages: 3 },
+            { key: "warehouse", label: "Main Storage Area", maxImages: 8 },
+            { key: "loadingArea", label: "Loading / Unloading Area", maxImages: 4 },
+            { key: "storageArea", label: "Racks / Internal Storage", maxImages: 4 },
+            { key: "parking", label: "Truck / Vehicle Parking", maxImages: 3 },
+            { key: "floorPlan", label: "Site / Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other Areas", maxImages: 5 }
+        ],
+        "Industrial Shed": [
+            { key: "facade", label: "Shed Exterior", maxImages: 3 },
+            { key: "warehouse", label: "Main Production Floor", maxImages: 8 },
+            { key: "loadingArea", label: "Loading / Dock Area", maxImages: 4 },
+            { key: "storageArea", label: "Storage / Raw Material", maxImages: 4 },
+            { key: "parking", label: "Parking / Yard", maxImages: 3 },
+            { key: "floorPlan", label: "Layout / Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other Areas", maxImages: 5 }
+        ],
+        "Commercial Building / Floor": [
+            { key: "facade", label: "Building Exterior", maxImages: 4 },
+            { key: "reception", label: "Main Lobby / Reception", maxImages: 3 },
+            { key: "workArea", label: "Typical Floor / Work Area", maxImages: 6 },
+            { key: "cabin", label: "Cabins / Offices", maxImages: 4 },
+            { key: "conferenceRoom", label: "Conference Rooms", maxImages: 3 },
+            { key: "parking", label: "Parking Levels", maxImages: 4 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 2 },
+            { key: "other", label: "Other Areas", maxImages: 5 }
+        ]
     }
 };
 
@@ -318,6 +454,7 @@ export default function AddProperty() {
     const [activeLocationField, setActiveLocationField] = useState(null); // 'city', 'locality', or 'address'
     const [showSuggestions, setShowSuggestions] = useState(false);
     const searchTimeoutRef = useRef(null);
+    const geocodeTimeoutRef = useRef(null);
     const suggestionsRef = useRef(null);
 
     // Fetch metadata
@@ -475,12 +612,43 @@ export default function AddProperty() {
         return match ? match._id : null;
     };
 
+    // Lightweight number helpers to keep payload clean
+    const toNumber = (val) => {
+        const num = Number(val);
+        return Number.isFinite(num) ? num : undefined;
+    };
+
+    const roundTo = (val, digits = 2) => {
+        if (!Number.isFinite(val)) return undefined;
+        const factor = 10 ** digits;
+        return Math.round(val * factor) / factor;
+    };
+
     const handleSubmit = async () => {
         setIsLoading(true);
         try {
+            const priceValue = toNumber(formData.expectedPrice);
+            if (priceValue === undefined) {
+                toast.error("Please enter a valid price amount.");
+                setIsLoading(false);
+                return;
+            }
+
             const submitData = new FormData();
             const categoryId = findObjectId(formData.propertyCategory, 'categories');
             const propertyTypeId = findObjectId(formData.propertyType, 'propertyTypes');
+
+            if (!categoryId && !metadata.categories.length) {
+                toast.error("Categories not loaded. Please retry in a moment.");
+                setIsLoading(false);
+                return;
+            }
+
+            if (!propertyTypeId && !metadata.propertyTypes.length) {
+                toast.error("Property types not loaded. Please retry in a moment.");
+                setIsLoading(false);
+                return;
+            }
 
             submitData.append("propertyType", propertyTypeId || (metadata.propertyTypes[0]?._id));
             submitData.append("propertyTypeName", formData.propertyType);
@@ -488,15 +656,31 @@ export default function AddProperty() {
             submitData.append("categoryName", formData.propertyCategory);
             submitData.append("title", generateTitle());
             submitData.append("description", formData.description || generateShortDescription());
-            submitData.append("price", formData.expectedPrice);
+            submitData.append("price", priceValue);
             submitData.append("listingType", formData.listingType);
             submitData.append("priceUnit", formData.listingType === "Rent" ? "Monthly" : "Total");
             submitData.append("negotiable", formData.priceNegotiable ? "true" : "false");
             submitData.append("gstApplicable", formData.gstApplicable ? "Yes" : "No");
             submitData.append("city", formData.city);
             submitData.append("locality", formData.locality);
+            if (formData.bookingAmount) submitData.append("bookingAmount", toNumber(formData.bookingAmount) ?? formData.bookingAmount);
+            if (formData.videoUrl) submitData.append("videoUrl", formData.videoUrl.trim());
+            if (formData.ageOfProperty || formData.propertyAge) submitData.append("ageOfProperty", formData.ageOfProperty || formData.propertyAge);
 
-            const areaData = { builtUpSqft: formData.builtUpArea, carpetSqft: formData.carpetArea, superBuiltUpSqft: formData.superBuiltUpArea, plotSqft: formData.plotArea };
+            const builtUp = toNumber(formData.builtUpArea);
+            const carpet = toNumber(formData.carpetArea);
+            const superBuilt = toNumber(formData.superBuiltUpArea);
+            const plot = toNumber(formData.plotArea);
+            const totalSqft = builtUp || carpet || superBuilt || plot;
+            const pricePerSqft = totalSqft ? roundTo(priceValue / totalSqft) : undefined;
+            const areaData = {
+                builtUpSqft: builtUp,
+                carpetSqft: carpet,
+                superBuiltUpSqft: superBuilt,
+                plotSqft: plot,
+                totalSqft,
+                pricePerSqft
+            };
             submitData.append("area", JSON.stringify(areaData));
 
             const addressData = {
@@ -504,7 +688,9 @@ export default function AddProperty() {
                 area: formData.locality,
                 line: formData.address,
                 landmark: formData.landmark,
-                nearby: formData.nearby || [],
+                nearby: Array.isArray(formData.nearby)
+                    ? formData.nearby
+                    : (formData.nearby ? formData.nearby.split(',').map(item => item.trim()).filter(Boolean) : []),
                 latitude: formData.latitude ? parseFloat(formData.latitude) : null,
                 longitude: formData.longitude ? parseFloat(formData.longitude) : null
             };
@@ -518,11 +704,15 @@ export default function AddProperty() {
 
             let featuresData = {
                 listingType: formData.listingType,
-                parking: { covered: Number(formData.parkingCovered || 0), open: Number(formData.parkingOpen || 0) },
+                parking: {
+                    covered: toNumber(formData.parkingCovered) ?? 0,
+                    open: toNumber(formData.parkingOpen) ?? 0
+                },
                 amenities: formData.selectedAmenities || [],
-                availableFrom: formData.availableFrom,
-                deposit: formData.expectedDeposit,
-                maintenance: formData.maintenanceIncluded ? "Included" : formData.maintenance,
+                availableFrom: formData.availableFrom ? new Date(formData.availableFrom).toISOString() : undefined,
+                deposit: toNumber(formData.expectedDeposit) ?? formData.expectedDeposit,
+                securityDeposit: toNumber(formData.expectedDeposit) ?? formData.expectedDeposit,
+                maintenance: formData.maintenanceIncluded ? "Included" : (toNumber(formData.maintenance) ?? formData.maintenance),
                 maintenanceIncluded: formData.maintenanceIncluded,
             };
 
@@ -766,6 +956,37 @@ export default function AddProperty() {
         }
     };
 
+    // Forward geocode when user types address/locality/city manually
+    const forwardGeocode = async (query) => {
+        if (!query || query.length < 3) return;
+        try {
+            const response = await axios.get("https://nominatim.openstreetmap.org/search", {
+                params: { format: "json", q: query, addressdetails: 1, limit: 1 },
+                headers: { "Accept-Language": "en" }
+            });
+
+            const best = response.data?.[0];
+            if (!best) return;
+
+            const lat = parseFloat(best.lat);
+            const lon = parseFloat(best.lon);
+
+            if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                const latFixed = lat.toFixed(6);
+                const lonFixed = lon.toFixed(6);
+
+                setFormData(prev => {
+                    if (prev.latitude === latFixed && prev.longitude === lonFixed) return prev;
+                    return { ...prev, latitude: latFixed, longitude: lonFixed };
+                });
+
+                setMapPosition([lat, lon]);
+            }
+        } catch (error) {
+            console.error("Forward geocoding failed:", error);
+        }
+    };
+
     // Search locations using local JSON data
     const searchLocations = (query, fieldType) => {
         setActiveLocationField(fieldType);
@@ -940,6 +1161,25 @@ export default function AddProperty() {
         setShowSuggestions(false);
         setActiveLocationField(null);
     };
+
+    // Debounce forward geocoding as user types address/locality/city
+    useEffect(() => {
+        const query = [formData.address, formData.locality, formData.city]
+            .filter(Boolean)
+            .join(", ");
+
+        if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
+
+        if (!query || query.length < 3) return;
+
+        geocodeTimeoutRef.current = setTimeout(() => {
+            forwardGeocode(query);
+        }, 800);
+
+        return () => {
+            if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
+        };
+    }, [formData.address, formData.locality, formData.city]);
 
     // Close suggestions when clicking outside
     useEffect(() => {
@@ -1146,43 +1386,41 @@ export default function AddProperty() {
                     </MapContainer>
                 </div>
 
-                {/* Coordinates Display */}
-                {(formData.latitude && formData.longitude) && (
-                    <div className="mt-4 grid grid-cols-2 gap-4">
-                        <div>
-                            <label className={labelStyle}>Latitude</label>
-                            <input
-                                name="latitude"
-                                value={formData.latitude}
-                                onChange={(e) => {
-                                    const lat = parseFloat(e.target.value);
-                                    handleChange(e);
-                                    if (!isNaN(lat) && formData.longitude) {
-                                        setMapPosition([lat, parseFloat(formData.longitude)]);
-                                    }
-                                }}
-                                placeholder="e.g. 19.0760"
-                                className={inputStyle}
-                            />
-                        </div>
-                        <div>
-                            <label className={labelStyle}>Longitude</label>
-                            <input
-                                name="longitude"
-                                value={formData.longitude}
-                                onChange={(e) => {
-                                    const lng = parseFloat(e.target.value);
-                                    handleChange(e);
-                                    if (!isNaN(lng) && formData.latitude) {
-                                        setMapPosition([parseFloat(formData.latitude), lng]);
-                                    }
-                                }}
-                                placeholder="e.g. 72.8777"
-                                className={inputStyle}
-                            />
-                        </div>
+                {/* Coordinates Display (always editable) */}
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label className={labelStyle}>Latitude</label>
+                        <input
+                            name="latitude"
+                            value={formData.latitude}
+                            onChange={(e) => {
+                                const lat = parseFloat(e.target.value);
+                                handleChange(e);
+                                if (!isNaN(lat) && formData.longitude) {
+                                    setMapPosition([lat, parseFloat(formData.longitude)]);
+                                }
+                            }}
+                            placeholder="e.g. 19.0760"
+                            className={inputStyle}
+                        />
                     </div>
-                )}
+                    <div>
+                        <label className={labelStyle}>Longitude</label>
+                        <input
+                            name="longitude"
+                            value={formData.longitude}
+                            onChange={(e) => {
+                                const lng = parseFloat(e.target.value);
+                                handleChange(e);
+                                if (!isNaN(lng) && formData.latitude) {
+                                    setMapPosition([parseFloat(formData.latitude), lng]);
+                                }
+                            }}
+                            placeholder="e.g. 72.8777"
+                            className={inputStyle}
+                        />
+                    </div>
+                </div>
 
                 {mapPosition && (
                     <div className="mt-3 flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200">

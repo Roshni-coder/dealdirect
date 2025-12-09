@@ -20,10 +20,10 @@ const messageSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    // Message type
+    // Message type (supports special system actions like visit requests)
     messageType: {
       type: String,
-      enum: ["text", "image", "file", "system"],
+      enum: ["text", "image", "file", "system", "visit_request", "visit_confirmation"],
       default: "text",
     },
     // For file/image messages

@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { XMarkIcon, CalendarDaysIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-toastify';
 
-const VisitModal = ({ isOpen, onClose, propertyTitle }) => {
+// Optional onConfirm allows callers (like chat) to hook into the
+// selected date/time instead of using the built-in mock API.
+const VisitModal = ({ isOpen, onClose, propertyTitle, onConfirm }) => {
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [loading, setLoading] = useState(false);
@@ -22,7 +24,23 @@ const VisitModal = ({ isOpen, onClose, propertyTitle }) => {
         }
 
         setLoading(true);
-        // Simulate API call
+
+        if (onConfirm) {
+            Promise.resolve(
+                onConfirm({ date: selectedDate, time: selectedTime })
+            )
+                .then(() => {
+                    toast.success("Visit scheduled successfully!");
+                    onClose();
+                })
+                .catch(() => {
+                    toast.error("Failed to schedule visit. Please try again.");
+                })
+                .finally(() => setLoading(false));
+            return;
+        }
+
+        // Fallback: simulate API call when no onConfirm handler is provided
         setTimeout(() => {
             setLoading(false);
             toast.success("Visit scheduled successfully! Check your email for details.");

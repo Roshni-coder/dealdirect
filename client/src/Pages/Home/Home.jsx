@@ -70,6 +70,17 @@ const normalizePrice = (price, unit) => {
   return amount;
 };
 
+const formatCategoryDisplay = (name) => {
+  const value = (name || "").toString();
+  const lower = value.toLowerCase();
+  if (lower.includes("commercial land")) return "Commercial Property";
+  if (lower.includes("commercial property")) return "Commercial Property";
+  if (lower.includes("residential land") || lower.includes("residential plot")) return "Residential Property";
+  if (lower.includes("residential")) return "Residential Property";
+  if (lower.includes("commercial")) return "Commercial Property";
+  return value || "Property";
+};
+
 const Home = () => {
   const [properties, setProperties] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -261,7 +272,7 @@ const Home = () => {
                     >
                       <div className="relative h-48 overflow-hidden">
                         <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur text-slate-800 text-xs font-bold px-2 py-1 rounded shadow-sm">
-                          {property.category?.name}
+                          {formatCategoryDisplay(property.category?.name || property.categoryName || property.category || property.propertyCategory)}
                         </div>
                         <img
                           src={resolveImageSrc(property.images?.[0])}

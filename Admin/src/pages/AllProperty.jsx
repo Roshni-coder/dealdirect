@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
     Trash,
     CheckCircle,
@@ -33,6 +34,7 @@ const AllProperty = () => {
     const [rejectionReason, setRejectionReason] = useState("");
 
     const adminToken = localStorage.getItem("adminToken");
+    const location = useLocation();
 
     // Helper: Extract data safely
     const extractList = (resData) => {
@@ -52,12 +54,12 @@ const AllProperty = () => {
     };
 
     // --- Fetch Properties ---
-    const fetchProperties = async () => {
+    const fetchProperties = async (overrideSearch) => {
         setLoading(true);
         try {
             // Build Params
             const params = {
-                search: searchTerm,
+                search: overrideSearch !== undefined ? overrideSearch : searchTerm,
                 status: statusFilter,
                 startDate: startDate || undefined,
                 endDate: endDate || undefined
@@ -83,6 +85,17 @@ const AllProperty = () => {
     useEffect(() => {
         fetchProperties();
     }, [statusFilter, startDate, endDate]); 
+
+    // Initial load from URL query (?search=...)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const initialSearch = params.get("search");
+        if (initialSearch) {
+            setSearchTerm(initialSearch);
+            fetchProperties(initialSearch);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
 
     // Handle Enter Key in Search Input
     const handleKeyDown = (e) => {

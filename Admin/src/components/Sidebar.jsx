@@ -73,6 +73,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       name: "Reported Messages",
       icon: <Flag className="h-5 w-5" />,
     },
+    {
+      path: "/property-reports",
+      name: "Property Reports",
+      icon: <Flag className="h-5 w-5" />,
+    },
     // {
     //   path: "/add-category",
     //   name: "Add Category",

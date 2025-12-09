@@ -22,6 +22,7 @@ import BuilderVerification from "./pages/BuilderVerification";
 import BuilderProjects from "./pages/BuilderProjects";
 import ContactInquiries from "./pages/ContactInquiries";
 import ReportedMessages from "./pages/ReportedMessages";
+import PropertyReports from "./pages/PropertyReports";
 
 
 const getStoredAdminInfo = () => {
@@ -248,6 +249,14 @@ function App() {
             element={
               <ProtectedRoute allowEnvAgent={false}>
                 <ReportedMessages />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/property-reports"
+            element={
+              <ProtectedRoute allowEnvAgent={false}>
+                <PropertyReports />
               </ProtectedRoute>
             }
           />

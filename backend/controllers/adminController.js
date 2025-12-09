@@ -379,12 +379,18 @@ export const updateAdminLeadStatus = async (req, res) => {
   }
 };
 
-// ✅ Get Reported Messages (Admin)
+// ✅ Get Reports (Admin) - supports both message and property reports
 export const getAdminReports = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status } = req.query;
+    const { page = 1, limit = 20, status, type } = req.query;
 
-    let filter = {};
+    // Default to message reports if type not specified for backward compatibility
+    let filter = { };
+    if (type && type !== "all") {
+      filter.contextType = type;
+    } else {
+      filter.contextType = "message";
+    }
     if (status && status !== "all") {
       filter.status = status;
     }
@@ -394,6 +400,10 @@ export const getAdminReports = async (req, res) => {
       .populate({
         path: "message",
         populate: { path: "sender", select: "name email role" }
+      })
+      .populate({
+        path: "property",
+        populate: { path: "owner", select: "name email role" }
       })
       .sort({ createdAt: -1 })
       .skip((parseInt(page) - 1) * parseInt(limit))

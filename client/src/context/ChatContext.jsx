@@ -170,7 +170,7 @@ export const ChatProvider = ({ children }) => {
     }
   }, [fetchConversations, token]);
 
-  // Send message
+  // Send a standard text message
   const sendMessage = useCallback(async (conversationId, text) => {
     if (!token) return null;
 
@@ -197,6 +197,36 @@ export const ChatProvider = ({ children }) => {
       return null;
     }
   }, [socket, fetchConversations, token]);
+
+  // Send a special visit-related message (request or confirmation)
+  const sendVisitMessage = useCallback(
+    async (conversationId, text, messageType) => {
+      if (!token) return null;
+
+      try {
+        const res = await axios.post(
+          `${API_BASE}/api/chat/message/send`,
+          { conversationId, text, messageType },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (res.data.success) {
+          const newMessage = res.data.message;
+          setMessages((prev) => [...prev, newMessage]);
+
+          if (socket) {
+            socket.emit("send_message", { conversationId, message: newMessage });
+          }
+
+          fetchConversations();
+          return newMessage;
+        }
+      } catch (error) {
+        console.error("Error sending visit message:", error);
+        return null;
+      }
+    },
+    [socket, fetchConversations, token]
+  );
 
   // Join conversation room
   const joinConversation = useCallback((conversationId) => {
@@ -308,6 +338,7 @@ export const ChatProvider = ({ children }) => {
     fetchMessages,
     startConversation,
     sendMessage,
+    sendVisitMessage,
     joinConversation,
     leaveConversation,
     emitTyping,

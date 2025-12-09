@@ -16,7 +16,7 @@ const PROPERTY_CATEGORIES = {
         subtypes: ["Standard"]
     },
     Plot: {
-        types: ["Residential Plot", "Commercial Land", "Industrial Land", "Agricultural Land"],
+        types: ["Residential Plot", "Commercial Property", "Industrial Land", "Agricultural Land"],
         subtypes: ["Standard"]
     }
 };

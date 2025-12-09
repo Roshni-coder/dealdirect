@@ -15,10 +15,12 @@ import {
   updateMyProperty,
   markInterested,
   checkInterested,
+  removeInterest,
   getSavedProperties,
   removeSavedProperty,
   getSuggestions,
   getAdminProperties,
+  reportProperty,
 } from "../controllers/propertyController.js";
 import { protectAdmin } from "../middleware/authAdmin.js";
 import { authMiddleware } from "../middleware/authUser.js";
@@ -65,6 +67,10 @@ router.delete("/delete/:id", protectAdmin, deleteProperty);
 // 🔒 Protected: Interest routes (MUST be before /:id)
 router.post("/interested/:id", authMiddleware, markInterested);
 router.get("/interested/:id/check", authMiddleware, checkInterested);
+router.delete("/interested/:id", authMiddleware, removeInterest);
+
+// 🔒 Protected: Report property
+router.post("/:id/report", authMiddleware, reportProperty);
 
 // Dynamic ID routes (MUST be last)
 router.get("/:id", getPropertyById);

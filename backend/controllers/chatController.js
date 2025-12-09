@@ -76,7 +76,7 @@ export const startConversation = async (req, res) => {
     await conversation.save();
     await conversation.populate([
       { path: "participants", select: "name email profileImage" },
-      { path: "property", select: "title images address price" },
+      { path: "property", select: "title images address price owner" },
     ]);
 
     console.log("Conversation created successfully:", conversation._id);
@@ -97,7 +97,7 @@ export const getConversations = async (req, res) => {
       isActive: true,
     })
       .populate("participants", "name email profileImage")
-      .populate("property", "title images address price propertyTypeName")
+      .populate("property", "title images address price propertyTypeName owner")
       .sort({ updatedAt: -1 });
 
     // Add other participant info and unread count
@@ -105,10 +105,20 @@ export const getConversations = async (req, res) => {
       const otherParticipant = conv.participants.find(
         (p) => p._id.toString() !== userId
       );
+
+      const propertyOwner = conv.property?.owner;
+      const propertyOwnerId =
+        typeof propertyOwner === "string" || !propertyOwner
+          ? propertyOwner?.toString?.()
+          : propertyOwner._id?.toString?.();
+
+      const isOwner = propertyOwnerId === userId;
+
       return {
         ...conv.toObject(),
         otherParticipant,
         myUnreadCount: conv.unreadCount.get(userId) || 0,
+        isOwner,
       };
     });
 

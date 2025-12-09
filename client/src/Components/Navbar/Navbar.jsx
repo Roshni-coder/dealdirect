@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import { AiOutlineUser, AiOutlineMenu, AiOutlineClose, AiOutlineSearch, AiOutlineHome, AiOutlineInfoCircle, AiOutlinePhone, AiOutlineFileText, AiOutlinePlusCircle, AiOutlineLogin, AiOutlineLogout, AiOutlineSetting, AiOutlineHeart } from "react-icons/ai";
 import { FaMapMarkerAlt, FaMicrophone } from "react-icons/fa";
 import { BsBuilding, BsHouseDoor, BsPersonCircle } from "react-icons/bs";
@@ -286,19 +287,60 @@ function Navbar() {
     navigate(agentUploadUrl);
   }, [agentUploadUrl, isExternalAgentUrl, navigate, showAgentUpload]);
 
-  const handleRegisterProperty = () => {
-    if (user) {
-      // Check if user is a buyer (user role) - needs email verification to list property
-      const userRole = user.role || "user";
-      if (userRole === "user") {
-        // Buyer needs to verify email first
-        setIsVerificationModalOpen(true);
-      } else {
-        // Owner or agent - can directly add property
-        navigate("/add-property");
-      }
-    } else {
+  const handleRegisterProperty = async () => {
+    if (!user) {
       setIsAuthModalOpen(true);
+      return;
+    }
+
+    // Check if user is a buyer (user role) - needs email verification to list property
+    const userRole = (user.role || "user").toLowerCase();
+
+    if (userRole === "user") {
+      // Buyer needs to verify email first
+      setIsVerificationModalOpen(true);
+      return;
+    }
+
+    // For agents, keep existing behaviour
+    if (userRole === "agent") {
+      navigate("/add-property");
+      return;
+    }
+
+    // For owners, enforce: only one property can be listed
+    if (userRole === "owner") {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsAuthModalOpen(true);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`${API_BASE}/api/properties/my-properties`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const count =
+          typeof res.data?.count === "number"
+            ? res.data.count
+            : Array.isArray(res.data?.data)
+            ? res.data.data.length
+            : 0;
+
+        if (count >= 1) {
+          toast.info(
+            "You can list only one property as an owner. Please edit your existing listing from My Properties.",
+          );
+          navigate("/my-properties");
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking existing properties:", error);
+        // If the check fails, fall back to allowing navigation so user isn't blocked unexpectedly
+      }
+
+      navigate("/add-property");
     }
   };
 
@@ -465,7 +507,7 @@ function Navbar() {
                             <li><Link to="/properties?search=2 BHK&availableFor=Sell" className="text-gray-700 hover:text-red-600 text-sm">2 BHK</Link></li>
                             <li><Link to="/properties?search=3 BHK&availableFor=Sell" className="text-gray-700 hover:text-red-600 text-sm">3 BHK</Link></li>
                             <li><Link to="/properties?search=4 BHK&availableFor=Sell" className="text-gray-700 hover:text-red-600 text-sm">4 BHK</Link></li>
-                            <li><Link to="/properties?search=5 BHK&availableFor=Sell" className="text-gray-700 hover:text-red-600 text-sm">5+ BHK</Link></li>
+                            <li><Link to="/properties?search=5%2B BHK&availableFor=Sell" className="text-gray-700 hover:text-red-600 text-sm">5+ BHK</Link></li>
                           </ul>
                         </div>
                       </div>
@@ -514,7 +556,7 @@ function Navbar() {
                             <li><Link to="/properties?search=1 BHK&availableFor=Rent" className="text-gray-700 hover:text-red-600 text-sm">1 BHK</Link></li>
                             <li><Link to="/properties?search=2 BHK&availableFor=Rent" className="text-gray-700 hover:text-red-600 text-sm">2 BHK</Link></li>
                             <li><Link to="/properties?search=3 BHK&availableFor=Rent" className="text-gray-700 hover:text-red-600 text-sm">3 BHK</Link></li>
-                            <li><Link to="/properties?search=4 BHK&availableFor=Rent" className="text-gray-700 hover:text-red-600 text-sm">4+ BHK</Link></li>
+                            <li><Link to="/properties?search=4 BHK&availableFor=Rent" className="text-gray-700 hover:text-red-600 text-sm">4 BHK</Link></li>
                           </ul>
                         </div>
                       </div>

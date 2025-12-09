@@ -126,23 +126,87 @@ const IMAGE_CATEGORIES = {
         "Farm House": [{ key: "exterior", label: "Property Exterior", maxImages: 5 }, { key: "livingRoom", label: "Living Space", maxImages: 3 }, { key: "land", label: "Farm Land", maxImages: 5 }, { key: "other", label: "Other", maxImages: 5 }]
     },
     Commercial: {
+        // Mirror AddProperty commercial categories and align with backend keys
         "Office Space": [
-            { key: "facade", label: "Building Exterior", maxImages: 3 },
-            { key: "reception", label: "Reception", maxImages: 2 },
-            { key: "workArea", label: "Work Area", maxImages: 4 },
-            { key: "cabin", label: "Cabins/Rooms", maxImages: 3 },
-            { key: "conference", label: "Conference Room", maxImages: 2 },
-            { key: "pantry", label: "Pantry", maxImages: 2 },
-            { key: "washroom", label: "Washrooms", maxImages: 2 },
+            { key: "facade", label: "Building Exterior", maxImages: 4 },
+            { key: "reception", label: "Reception / Lobby", maxImages: 3 },
+            { key: "workArea", label: "Open Work Area", maxImages: 6 },
+            { key: "cabin", label: "Cabins / Rooms", maxImages: 4 },
+            { key: "conferenceRoom", label: "Conference Rooms", maxImages: 3 },
+            { key: "pantry", label: "Pantry", maxImages: 3 },
+            { key: "washroom", label: "Washrooms", maxImages: 3 },
+            { key: "parking", label: "Parking", maxImages: 3 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
             { key: "other", label: "Other", maxImages: 5 }
         ],
-        "Shop / Retail": [{ key: "facade", label: "Shop Front", maxImages: 3 }, { key: "interior", label: "Interior", maxImages: 4 }, { key: "storage", label: "Storage", maxImages: 2 }, { key: "other", label: "Other", maxImages: 3 }],
-        "Showroom": [{ key: "facade", label: "Showroom Facade", maxImages: 4 }, { key: "display", label: "Display Area", maxImages: 5 }, { key: "other", label: "Other", maxImages: 3 }],
-        "Restaurant / Cafe": [{ key: "facade", label: "Restaurant Exterior", maxImages: 3 }, { key: "dining", label: "Dining Area", maxImages: 4 }, { key: "kitchen", label: "Kitchen", maxImages: 3 }, { key: "other", label: "Other", maxImages: 3 }],
-        "Co-Working Space": [{ key: "workArea", label: "Open Desk Area", maxImages: 4 }, { key: "meeting", label: "Meeting Rooms", maxImages: 3 }, { key: "lounge", label: "Lounge", maxImages: 2 }, { key: "other", label: "Other", maxImages: 3 }],
-        "Warehouse / Godown": [{ key: "exterior", label: "Building Exterior", maxImages: 3 }, { key: "storage", label: "Storage Area", maxImages: 5 }, { key: "loading", label: "Loading Dock", maxImages: 2 }, { key: "other", label: "Other", maxImages: 3 }],
-        "Industrial Shed": [{ key: "exterior", label: "Shed Exterior", maxImages: 3 }, { key: "interior", label: "Main Floor", maxImages: 5 }, { key: "other", label: "Other", maxImages: 3 }],
-        "Commercial Building / Floor": [{ key: "facade", label: "Building Exterior", maxImages: 3 }, { key: "interior", label: "Interior", maxImages: 4 }, { key: "common", label: "Common Areas", maxImages: 3 }, { key: "other", label: "Other", maxImages: 3 }]
+        "Shop / Retail": [
+            { key: "facade", label: "Shop Front / Facade", maxImages: 4 },
+            { key: "shopFloor", label: "Shop Floor", maxImages: 6 },
+            { key: "displayArea", label: "Display Area", maxImages: 4 },
+            { key: "storageArea", label: "Storage / Back Area", maxImages: 4 },
+            { key: "washroom", label: "Washrooms", maxImages: 2 },
+            { key: "parking", label: "Customer Parking", maxImages: 3 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Showroom": [
+            { key: "facade", label: "Showroom Exterior", maxImages: 4 },
+            { key: "reception", label: "Reception / Front Desk", maxImages: 3 },
+            { key: "displayArea", label: "Display Area", maxImages: 6 },
+            { key: "seatingArea", label: "Customer Seating", maxImages: 3 },
+            { key: "storageArea", label: "Back Office / Storage", maxImages: 3 },
+            { key: "parking", label: "Parking", maxImages: 3 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Restaurant / Cafe": [
+            { key: "facade", label: "Exterior / Entrance", maxImages: 4 },
+            { key: "seatingArea", label: "Dining / Seating", maxImages: 6 },
+            { key: "kitchenCommercial", label: "Commercial Kitchen", maxImages: 4 },
+            { key: "washroom", label: "Washrooms", maxImages: 3 },
+            { key: "storageArea", label: "Storage / Prep Area", maxImages: 3 },
+            { key: "parking", label: "Parking / Valet", maxImages: 3 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Co-Working Space": [
+            { key: "facade", label: "Exterior", maxImages: 3 },
+            { key: "reception", label: "Reception / Entry", maxImages: 3 },
+            { key: "workArea", label: "Open Desk Area", maxImages: 6 },
+            { key: "cabin", label: "Private Cabins", maxImages: 4 },
+            { key: "conferenceRoom", label: "Meeting Rooms", maxImages: 3 },
+            { key: "seatingArea", label: "Lounge / Breakout", maxImages: 3 },
+            { key: "pantry", label: "Pantry / Cafe", maxImages: 3 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Warehouse / Godown": [
+            { key: "facade", label: "Warehouse Exterior", maxImages: 3 },
+            { key: "warehouse", label: "Main Storage Area", maxImages: 8 },
+            { key: "loadingArea", label: "Loading / Unloading", maxImages: 4 },
+            { key: "storageArea", label: "Racks / Internal Storage", maxImages: 4 },
+            { key: "parking", label: "Truck / Vehicle Parking", maxImages: 3 },
+            { key: "floorPlan", label: "Site / Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Industrial Shed": [
+            { key: "facade", label: "Shed Exterior", maxImages: 3 },
+            { key: "warehouse", label: "Main Production Floor", maxImages: 8 },
+            { key: "loadingArea", label: "Loading Area", maxImages: 4 },
+            { key: "storageArea", label: "Storage / Raw Material", maxImages: 4 },
+            { key: "parking", label: "Parking / Yard", maxImages: 3 },
+            { key: "floorPlan", label: "Layout / Floor Plan", maxImages: 1 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ],
+        "Commercial Building / Floor": [
+            { key: "facade", label: "Building Exterior", maxImages: 4 },
+            { key: "reception", label: "Main Lobby / Reception", maxImages: 3 },
+            { key: "workArea", label: "Typical Floor / Work Area", maxImages: 6 },
+            { key: "cabin", label: "Cabins / Offices", maxImages: 4 },
+            { key: "conferenceRoom", label: "Conference Rooms", maxImages: 3 },
+            { key: "parking", label: "Parking Levels", maxImages: 4 },
+            { key: "floorPlan", label: "Floor Plan", maxImages: 2 },
+            { key: "other", label: "Other", maxImages: 5 }
+        ]
     }
 };
 

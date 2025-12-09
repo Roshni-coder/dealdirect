@@ -38,6 +38,13 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// Basic phone validation (Indian 10-digit mobile numbers starting 6-9)
+const isValidPhoneNumber = (phone) => {
+  const cleaned = (phone || "").toString().trim();
+  if (!cleaned) return true; // treat missing as valid (optional field)
+  return /^[6-9]\d{9}$/.test(cleaned);
+};
+
 // Send OTP Email helper function
 const sendOTPEmail = async (email, otp, name = "User") => {
   const mailOptions = {
@@ -86,7 +93,11 @@ const sendOTPEmail = async (email, otp, name = "User") => {
 // ✅ Register User (Step 1: Send OTP) - For owners who need verification
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone } = req.body;
+
+    if (!isValidPhoneNumber(phone)) {
+      return res.status(400).json({ message: "Please enter a valid 10-digit phone number" });
+    }
 
     let user = await User.findOne({ email });
 
@@ -108,6 +119,7 @@ export const registerUser = async (req, res) => {
         email,
         password: hashedPassword,
         role: normalizedRole,
+        phone,
         otp,
         otpExpires,
         isVerified: false,
@@ -117,6 +129,9 @@ export const registerUser = async (req, res) => {
       user.name = name;
       user.password = hashedPassword;
       user.role = normalizedRole;
+       if (phone) {
+         user.phone = phone;
+       }
       user.otp = otp;
       user.otpExpires = otpExpires;
       await user.save();
@@ -148,7 +163,11 @@ export const registerUser = async (req, res) => {
 // ✅ Register User Directly (For Buyers - No OTP Required)
 export const registerUserDirect = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone } = req.body;
+
+    if (!isValidPhoneNumber(phone)) {
+      return res.status(400).json({ message: "Please enter a valid 10-digit phone number" });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -171,6 +190,7 @@ export const registerUserDirect = async (req, res) => {
       email,
       password: hashedPassword,
       role: "user", // Buyers are always "user" role
+      phone,
       isVerified: true, // Auto-verify buyers
     });
 

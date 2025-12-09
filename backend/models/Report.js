@@ -7,15 +7,23 @@ const reportSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        // Context can be a chat message or a property listing
+        contextType: {
+            type: String,
+            enum: ["message", "property"],
+            default: "message",
+        },
         message: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Message",
-            required: true,
         },
         conversation: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Conversation",
-            required: true,
+        },
+        property: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Property",
         },
         reason: {
             type: String,
@@ -44,6 +52,7 @@ const reportSchema = new mongoose.Schema(
 // Index for easy lookup
 reportSchema.index({ status: 1 });
 reportSchema.index({ createdAt: -1 });
+reportSchema.index({ contextType: 1 });
 
 const Report = mongoose.model("Report", reportSchema);
 export default Report;

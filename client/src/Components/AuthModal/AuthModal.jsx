@@ -62,10 +62,12 @@ const AuthModal = ({ isOpen, onClose }) => {
 
         setIsLoading(true);
         try {
+            // Seller registration should create an owner-style account (with OTP)
             await axios.post(`${API_BASE}/api/users/register`, {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
+                role: "owner",
             });
             toast.success("OTP sent to your email!");
             setStep(2);

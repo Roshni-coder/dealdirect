@@ -12,7 +12,7 @@ export const budgetOptions = [
 
 export const propertyTypes = {
   Residential: ["Apartment", "Plot", "Builder Floor", "Villa", "Penthouse", "Independent House"],
-  Commercial: ["Office Space", "Shop", "Showroom", "Warehouse", "Commercial Land"]
+  Commercial: ["Office Space", "Shop", "Showroom", "Warehouse", "Commercial Property"]
 };
 
 export const projectPropertyTypes = {

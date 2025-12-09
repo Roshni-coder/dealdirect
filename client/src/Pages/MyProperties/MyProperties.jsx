@@ -752,6 +752,8 @@ export default function MyProperties() {
     }
   };
 
+  const [showPlans, setShowPlans] = useState(false);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pt-24 flex items-center justify-center">
@@ -1271,6 +1273,149 @@ export default function MyProperties() {
           </>
         )}
       </AnimatePresence>
+      {/* Owner Upgrade Floating Button */}
+{user?.role === "owner" && properties.length >= 1 && (
+  <div className="fixed bottom-24 right-6 z-40">
+    <button
+      onClick={() => setShowPlans(true)}
+      className="group flex items-center gap-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white px-6 py-3.5 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] relative overflow-hidden"
+    >
+      <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <span className="text-sm font-semibold relative z-10">
+        Want to list more than 1 property?
+      </span>
+      <span className="bg-white/20 border border-white/30 rounded-full px-3 py-1 text-xs font-bold relative z-10">
+        View Plans
+      </span>
+    </button>
+  </div>
+)}
+
+{/* Owner Plans Modal */}
+<AnimatePresence>
+  {showPlans && (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/70 backdrop-blur-md z-50"
+        onClick={() => setShowPlans(false)}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 60, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 60, scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 180, damping: 18 }}
+        className="fixed bottom-6 md:bottom-10 right-4 md:right-10 z-50 w-[94%] max-w-md"
+      >
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 overflow-hidden">
+
+          {/* Header */}
+          <div className="px-6 py-5 flex items-start justify-between gap-3 border-b border-gray-100">
+            <div>
+              <p className="text-xs font-bold text-indigo-600 uppercase tracking-[0.18em]">
+                Owner Upgrade
+              </p>
+              <h3 className="text-xl font-extrabold text-gray-900 mt-1">
+                Unlock More Listings
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Choose your plan & grow your property reach.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowPlans(false)}
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Plans */}
+          <div className="px-6 py-5 grid gap-4">
+
+            {/* Starter */}
+            <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 hover:shadow-sm transition">
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-[0.16em]">
+                  Free
+                </p>
+                <p className="text-base font-semibold text-gray-900">
+                  Starter Owner
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  1 active property • Basic visibility
+                </p>
+              </div>
+              <p className="text-base font-bold text-emerald-600">
+                ₹0/mo
+              </p>
+            </div>
+
+            {/* Growth - Featured */}
+            <div className="relative flex items-center justify-between rounded-2xl border-2 border-indigo-500 bg-indigo-50 px-5 py-4 shadow-md hover:shadow-lg transition">
+              <span className="absolute -top-3 left-4 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow">
+                MOST POPULAR
+              </span>
+
+              <div>
+                <p className="text-xs font-bold text-indigo-600 uppercase tracking-[0.16em]">
+                  Growth
+                </p>
+                <p className="text-base font-semibold text-gray-900">
+                  Growth Plan
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Up to 3 listings • Priority placement • Lead insights
+                </p>
+              </div>
+              <p className="text-sm font-bold text-indigo-700">
+                Coming Soon
+              </p>
+            </div>
+
+            {/* Premium */}
+            <div className="flex items-center justify-between rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 hover:shadow-md transition">
+              <div>
+                <p className="text-xs font-bold text-amber-600 uppercase tracking-[0.16em]">
+                  Premium
+                </p>
+                <p className="text-base font-semibold text-gray-900">
+                  Builder / Portfolio
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Featured badge • High limits • Dedicated support
+                </p>
+              </div>
+              <p className="text-xs font-bold text-amber-800 text-right">
+                Talk to<br />Sales Team
+              </p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 text-xs text-gray-500 bg-gray-50">
+            <p>Online payments coming soon.</p>
+
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText("dealdirect@gmail.com");
+                toast.success("Support email copied");
+              }}
+              className="text-indigo-600 font-bold hover:underline whitespace-nowrap"
+            >
+              Copy Support Email
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence>
+
     </div>
   );
 }
