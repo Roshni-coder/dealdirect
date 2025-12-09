@@ -1,0 +1,63 @@
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build outputs
+/dist/
+**/dist/
+/build/
+**/build/
+/dist-ssr/
+**/dist-ssr/
+/.vite/
+**/.vite/
+coverage/
+
+# Logs
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+!*/.env.example
+Admin/.env
+Admin/.env.*
+client/.env
+client/.env.*
+backend/.env
+backend/.env.*
+
+# Local data/uploads
+uploads/
+backend/uploads/
+!backend/uploads/.gitkeep
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.eslintcache
+*.tsbuildinfo
+*.local
+*.pem
+*.crt
+*.key
+
+# Mobile app folder
+mobile/
