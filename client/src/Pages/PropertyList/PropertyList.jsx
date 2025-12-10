@@ -14,7 +14,9 @@ import {
   FaList,
   FaMap,
   FaCrosshairs,
-  FaTimes
+  FaTimes,
+  FaBuilding,
+  FaUsers,
 } from "react-icons/fa";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } from "react-leaflet";
 import L from "leaflet";
@@ -278,6 +280,9 @@ const PropertyPage = () => {
   const [hoveredProperty, setHoveredProperty] = useState(null);
   const [interestedIds, setInterestedIds] = useState(() => new Set());
   const [interestLoadingIds, setInterestLoadingIds] = useState(() => new Set());
+  const [compareIds, setCompareIds] = useState([]); // property IDs selected for comparison
+  const [showCompareModal, setShowCompareModal] = useState(false);
+  const [compareBaseType, setCompareBaseType] = useState(null); // propertyTypeName string for current comparison group
 
   // Pin drop states
   const [pinDropMode, setPinDropMode] = useState(false);
@@ -315,7 +320,50 @@ const PropertyPage = () => {
     return value || "Property";
   };
 
+  const getTypeFlags = (property) => {
+    const categoryName = (
+      property.category?.name ||
+      property.categoryName ||
+      property.category ||
+      property.propertyCategory ||
+      ""
+    ).toString();
+
+    const categoryLower = categoryName.toLowerCase();
+
+    const propertyTypeName = (
+      property.propertyTypeName ||
+      (typeof property.propertyType === "object"
+        ? property.propertyType?.name
+        : property.propertyType) ||
+      ""
+    ).toString();
+
+    const propertyTypeLower = propertyTypeName.toLowerCase();
+
+    const isResidential =
+      categoryLower.includes("residen") ||
+      /apartment|flat|villa|house|studio|row house|farm house|penthouse/i.test(
+        propertyTypeLower
+      );
+
+    const isCommercial =
+      categoryLower.includes("commercial") ||
+      /office|shop|showroom|restaurant|cafe|warehouse|industrial|co-working|coworking|commercial/i.test(
+        propertyTypeLower
+      );
+
+    return { isResidential, isCommercial, propertyTypeName };
+  };
+
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); }, []);
+
+  const MAX_COMPARE = 3;
+
+  const selectedCompareProperties = useMemo(
+    () => properties.filter((p) => compareIds.includes(p._id)),
+    [properties, compareIds]
+  );
 
   // Apply post-login interest state passed via navigation state
   useEffect(() => {
@@ -332,6 +380,51 @@ const PropertyPage = () => {
     delete newState.interestedPropertyId;
     navigate(location.pathname + location.search, { replace: true, state: newState });
   }, [location.state, location.pathname, location.search, navigate]);
+
+  const getPropertyTypeLabel = (property) => {
+    return (
+      property.propertyTypeName ||
+      (typeof property.propertyType === "object" ? property.propertyType?.name : property.propertyType) ||
+      "Property"
+    );
+  };
+
+  const toggleCompare = (event, property) => {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    setCompareIds((prev) => {
+      if (prev.includes(property._id)) {
+        const next = prev.filter((id) => id !== property._id);
+        // If last item removed, reset base type
+        if (next.length === 0) {
+          setCompareBaseType(null);
+        }
+        return next;
+      }
+      if (prev.length >= MAX_COMPARE) {
+        toast.info(`You can compare up to ${MAX_COMPARE} properties at a time.`);
+        return prev;
+      }
+
+      const currentType = getPropertyTypeLabel(property);
+
+      if (!compareBaseType) {
+        setCompareBaseType(currentType);
+      } else if (compareBaseType !== currentType) {
+        toast.info(`You can only compare properties of the same type (currently comparing ${compareBaseType}).`);
+        return prev;
+      }
+      return [...prev, property._id];
+    });
+  };
+
+  const clearCompare = () => {
+    setCompareIds([]);
+    setCompareBaseType(null);
+  };
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -864,13 +957,44 @@ const PropertyPage = () => {
       {/* Content Grid */}
       <main className={viewMode === "map" ? "h-[calc(100vh-180px)]" : "max-w-7xl mx-auto px-6 py-8"}>
         {viewMode === "list" && (
-          <div className="mb-6 flex items-end justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">Real Estate Listings</h1>
               <p className="text-slate-500 text-sm mt-1">
-                {loading ? "Searching..." : `Showing ${filteredProperties.length} properties`}
+                {loading
+                  ? "Searching the best options for you..."
+                  : `Showing ${filteredProperties.length} of ${properties.length} properties`}
               </p>
             </div>
+            {!loading && filteredProperties.length > 0 && (
+              <div className="flex flex-wrap gap-2 text-[11px] text-slate-600">
+                {filters.city && (
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200">
+                    City: <span className="font-semibold">{filters.city}</span>
+                  </span>
+                )}
+                {filters.propertyType && (
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200">
+                    Type: <span className="font-semibold">{filters.propertyType}</span>
+                  </span>
+                )}
+                {filters.availableFor && (
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200">
+                    For: <span className="font-semibold">{filters.availableFor}</span>
+                  </span>
+                )}
+                {filters.priceRange && (
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200">
+                    Budget: <span className="font-semibold">{filters.priceRange}</span>
+                  </span>
+                )}
+                {filters.search && (
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 max-w-[180px] truncate">
+                    Search: <span className="font-semibold">{filters.search}</span>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -1194,20 +1318,99 @@ const PropertyPage = () => {
                     {p.address?.city}, {p.address?.state}
                   </p>
                   <div className="flex items-center gap-4 border-t border-slate-100 pt-4 text-slate-600 text-sm font-medium">
-                    <div className="flex items-center gap-1.5">
-                      <FaBed className="text-slate-400" />
-                      <span>{p.bedrooms || 3} Beds</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <FaBath className="text-slate-400" />
-                      <span>{p.bathrooms || 2} Baths</span>
-                    </div>
-                    {(p.area?.builtUpSqft || p.size) && (
-                      <div className="flex items-center gap-1.5">
-                        <FaRulerCombined className="text-slate-400" />
-                        <span>{p.area?.builtUpSqft || p.size} {p.sizeUnit || 'sqft'}</span>
-                      </div>
-                    )}
+                    {(() => {
+                      const { isResidential, isCommercial, propertyTypeName } = getTypeFlags(p);
+                      const builtUp = p.area?.builtUpSqft || p.size;
+                      const sizeUnit = p.sizeUnit || "sqft";
+
+                      if (isResidential) {
+                        const beds = p.bedrooms || p.bhk;
+                        const baths = p.bathrooms;
+
+                        return (
+                          <>
+                            {beds && (
+                              <div className="flex items-center gap-1.5">
+                                <FaBed className="text-slate-400" />
+                                <span>{beds} Beds</span>
+                              </div>
+                            )}
+                            {baths && (
+                              <div className="flex items-center gap-1.5">
+                                <FaBath className="text-slate-400" />
+                                <span>{baths} Baths</span>
+                              </div>
+                            )}
+                            {builtUp && (
+                              <div className="flex items-center gap-1.5">
+                                <FaRulerCombined className="text-slate-400" />
+                                <span>
+                                  {builtUp} {sizeUnit}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        );
+                      }
+
+                      if (isCommercial) {
+                        const seating = p.seatingCapacity || p.workstations;
+
+                        return (
+                          <>
+                            <div className="flex items-center gap-1.5">
+                              <FaBuilding className="text-slate-400" />
+                              <span className="truncate max-w-[120px]">
+                                {propertyTypeName || "Commercial"}
+                              </span>
+                            </div>
+                            {seating && (
+                              <div className="flex items-center gap-1.5">
+                                <FaUsers className="text-slate-400" />
+                                <span>{seating} Seats</span>
+                              </div>
+                            )}
+                            {builtUp && (
+                              <div className="flex items-center gap-1.5">
+                                <FaRulerCombined className="text-slate-400" />
+                                <span>
+                                  {builtUp} {sizeUnit}
+                                </span>
+                              </div>
+                            )}
+                          </>
+                        );
+                      }
+
+                      // Fallback: just show area if available
+                      return (
+                        <>
+                          {builtUp && (
+                            <div className="flex items-center gap-1.5">
+                              <FaRulerCombined className="text-slate-400" />
+                              <span>
+                                {builtUp} {sizeUnit}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={(e) => toggleCompare(e, p)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap ${compareIds.includes(p._id)
+                        ? "bg-slate-900 text-white border-slate-900"
+                        : "bg-white text-slate-700 border-slate-300 hover:border-slate-500"}
+                      `}
+                    >
+                      {compareIds.includes(p._id) ? "Added to Compare" : "Compare"}
+                    </button>
+                    <span className="text-[11px] text-slate-400 hidden sm:inline">
+                      Click card for full details
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1215,6 +1418,319 @@ const PropertyPage = () => {
           </div>
         )}
       </main>
+
+      {/* Sticky Compare Bar */}
+      {viewMode === "list" && compareIds.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 sm:px-4 sm:pb-4 pointer-events-none">
+          <div className="pointer-events-auto max-w-7xl mx-auto bg-white border border-slate-200 shadow-2xl rounded-2xl px-3 py-3 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-semibold text-slate-900">
+                {compareIds.length} {compareIds.length === 1 ? "property" : "properties"} selected for comparison
+              </p>
+              <div className="mt-2 flex items-center gap-2 overflow-x-auto">
+                {selectedCompareProperties.map((p) => (
+                  <button
+                    key={p._id}
+                    type="button"
+                    onClick={(e) => toggleCompare(e, p)}
+                    className="flex items-center gap-2 px-2 py-1 rounded-full border border-slate-200 bg-slate-50 text-[11px] sm:text-xs whitespace-nowrap hover:bg-red-50"
+                  >
+                    <img
+                      src={resolveImageSrc(p.images?.[0]) || FALLBACK_IMG}
+                      alt={p.title}
+                      className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                      onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMG; }}
+                    />
+                    <span className="max-w-[120px] sm:max-w-[180px] truncate">{p.title}</span>
+                    <span className="text-[9px] text-slate-400">✕</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={clearCompare}
+                className="px-3 py-2 rounded-xl border border-slate-200 text-[11px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedCompareProperties.length < 2) {
+                    toast.info("Select at least 2 properties to compare.");
+                    return;
+                  }
+                  setShowCompareModal(true);
+                }}
+                disabled={selectedCompareProperties.length < 2}
+                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs sm:text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Compare Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Compare Modal */}
+      {viewMode === "list" && showCompareModal && selectedCompareProperties.length >= 2 && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 sm:px-6 py-6">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-100">
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold text-slate-900">Compare Properties</h2>
+                <p className="text-xs sm:text-sm text-slate-500">Side-by-side comparison of key details</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowCompareModal(false); clearCompare(); }}
+                  className="hidden sm:inline-flex text-xs text-slate-500 hover:text-slate-800"
+                >
+                  Clear & close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCompareModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm"
+                  aria-label="Close comparison"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto">
+              <div className="min-w-[640px]">
+                <div
+                  className="grid text-xs sm:text-sm"
+                  style={{ gridTemplateColumns: `140px repeat(${selectedCompareProperties.length}, minmax(180px, 1fr))` }}
+                >
+                  {/* Header row with property cards */}
+                  <div className="bg-slate-50 border-b border-slate-200 p-3"></div>
+                  {selectedCompareProperties.map((p) => (
+                    <div key={p._id} className="bg-slate-50 border-b border-slate-200 p-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <img
+                          src={resolveImageSrc(p.images?.[0]) || FALLBACK_IMG}
+                          alt={p.title}
+                          className="w-full sm:w-24 h-24 object-cover rounded-xl border border-slate-200 flex-shrink-0"
+                          onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMG; }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate mb-1">{p.title}</p>
+                          <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate">
+                            <FaMapMarkerAlt className="text-red-500 flex-shrink-0" />
+                            {p.address?.city}{p.address?.state ? `, ${p.address.state}` : ""}
+                          </p>
+                          <p className="mt-1 text-sm font-bold text-red-600">
+                            ₹{p.price?.toLocaleString()} <span className="text-[11px] font-normal text-slate-500">{p.priceUnit}</span>
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-slate-500 uppercase tracking-wide">
+                            {p.listingType || "Listing"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Spec rows customised by property type */}
+                  {(() => {
+                    const base = selectedCompareProperties[0];
+                    const baseTypeLabel = getPropertyTypeLabel(base).toLowerCase();
+
+                    const isResidentialType = /apartment|flat|villa|house|studio|row house|farm house|penthouse|independent/i.test(baseTypeLabel);
+                    const isCommercialType = /office|shop|showroom|restaurant|cafe|warehouse|industrial|coworking|co-working|commercial/i.test(baseTypeLabel);
+
+                    let rows;
+
+                    if (isResidentialType) {
+                      rows = [
+                        {
+                          label: "BHK / Bedrooms",
+                          value: (p) => p.bhk || (p.bedrooms ? `${p.bedrooms} BHK` : "–"),
+                        },
+                        {
+                          label: "Bathrooms",
+                          value: (p) => p.bathrooms || "–",
+                        },
+                        {
+                          label: "Built-up Area",
+                          value: (p) =>
+                            p.area?.builtUpSqft
+                              ? `${p.area.builtUpSqft} sq.ft`
+                              : p.size
+                                ? `${p.size} ${p.sizeUnit || "sq.ft"}`
+                                : "–",
+                        },
+                        {
+                          label: "Furnishing",
+                          value: (p) => p.furnishing || "–",
+                        },
+                        {
+                          label: "Construction Status",
+                          value: (p) => p.constructionStatus || p.propertyAge || p.ageOfProperty || "–",
+                        },
+                        {
+                          label: "Facing",
+                          value: (p) => p.facing || "–",
+                        },
+                        {
+                          label: "Parking",
+                          value: (p) => {
+                            if (!p.parking) return "–";
+                            const parts = [];
+                            if (p.parking.covered) parts.push(`Covered: ${p.parking.covered}`);
+                            if (p.parking.open) parts.push(`Open: ${p.parking.open}`);
+                            return parts.join(" | ") || "–";
+                          },
+                        },
+                        {
+                          label: "Amenities",
+                          value: (p) => {
+                            if (!Array.isArray(p.amenities) || !p.amenities.length) return "–";
+                            const shown = p.amenities.slice(0, 3).join(", ");
+                            const extra = p.amenities.length > 3 ? ` +${p.amenities.length - 3} more` : "";
+                            return shown + extra;
+                          },
+                        },
+                        {
+                          label: "Status",
+                          value: (p) => p.status || "Active",
+                        },
+                      ];
+                    } else if (isCommercialType) {
+                      rows = [
+                        {
+                          label: "Configuration",
+                          value: (p) => p.commercialSubType || getPropertyTypeLabel(p),
+                        },
+                        {
+                          label: "Built-up Area",
+                          value: (p) =>
+                            p.area?.builtUpSqft
+                              ? `${p.area.builtUpSqft} sq.ft`
+                              : p.size
+                                ? `${p.size} ${p.sizeUnit || "sq.ft"}`
+                                : "–",
+                        },
+                        {
+                          label: "Floor / Level",
+                          value: (p) => p.floorNo || p.floorHeight || "–",
+                        },
+                        {
+                          label: "Seating / Workstations",
+                          value: (p) => p.seatingCapacity || p.workstations || "–",
+                        },
+                        {
+                          label: "Pantry / Kitchen",
+                          value: (p) => p.pantry || p.kitchenArea || "–",
+                        },
+                        {
+                          label: "Frontage / Visibility",
+                          value: (p) => p.frontage || p.displayArea || "–",
+                        },
+                        {
+                          label: "Parking",
+                          value: (p) => {
+                            if (!p.parking) return "–";
+                            const parts = [];
+                            if (p.parking.covered) parts.push(`Covered: ${p.parking.covered}`);
+                            if (p.parking.open) parts.push(`Open: ${p.parking.open}`);
+                            return parts.join(" | ") || "–";
+                          },
+                        },
+                        {
+                          label: "Power & AC",
+                          value: (p) => {
+                            const parts = [];
+                            if (p.powerLoad) parts.push(`Load: ${p.powerLoad}`);
+                            if (p.powerBackup) parts.push(p.powerBackup);
+                            if (p.centralAC) parts.push(p.centralAC);
+                            return parts.join(" | ") || "–";
+                          },
+                        },
+                        {
+                          label: "Amenities",
+                          value: (p) => {
+                            if (!Array.isArray(p.amenities) || !p.amenities.length) return "–";
+                            const shown = p.amenities.slice(0, 3).join(", ");
+                            const extra = p.amenities.length > 3 ? ` +${p.amenities.length - 3} more` : "";
+                            return shown + extra;
+                          },
+                        },
+                        {
+                          label: "Status",
+                          value: (p) => p.status || "Active",
+                        },
+                      ];
+                    } else {
+                      // Fallback generic rows
+                      rows = [
+                        {
+                          label: "Key Details",
+                          value: (p) => getPropertyTypeLabel(p),
+                        },
+                        {
+                          label: "Area",
+                          value: (p) =>
+                            p.area?.builtUpSqft
+                              ? `${p.area.builtUpSqft} sq.ft`
+                              : p.size
+                                ? `${p.size} ${p.sizeUnit || "sq.ft"}`
+                                : "–",
+                        },
+                        {
+                          label: "Construction Status",
+                          value: (p) => p.constructionStatus || p.propertyAge || p.ageOfProperty || "–",
+                        },
+                        {
+                          label: "Parking",
+                          value: (p) => {
+                            if (!p.parking) return "–";
+                            const parts = [];
+                            if (p.parking.covered) parts.push(`Covered: ${p.parking.covered}`);
+                            if (p.parking.open) parts.push(`Open: ${p.parking.open}`);
+                            return parts.join(" | ") || "–";
+                          },
+                        },
+                        {
+                          label: "Amenities",
+                          value: (p) => {
+                            if (!Array.isArray(p.amenities) || !p.amenities.length) return "–";
+                            const shown = p.amenities.slice(0, 3).join(", ");
+                            const extra = p.amenities.length > 3 ? ` +${p.amenities.length - 3} more` : "";
+                            return shown + extra;
+                          },
+                        },
+                        {
+                          label: "Status",
+                          value: (p) => p.status || "Active",
+                        },
+                      ];
+                    }
+
+                    return rows.map((row) => (
+                    <React.Fragment key={row.label}>
+                      <div className="bg-slate-50 border-b border-slate-100 p-3 font-semibold text-slate-700">
+                        {row.label}
+                      </div>
+                      {selectedCompareProperties.map((p) => (
+                        <div key={p._id + row.label} className="border-b border-slate-100 p-3 text-slate-700">
+                          {row.value(p)}
+                        </div>
+                      ))}
+                    </React.Fragment>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

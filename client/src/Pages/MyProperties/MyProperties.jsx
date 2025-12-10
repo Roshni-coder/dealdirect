@@ -65,6 +65,15 @@ const API_BASE = import.meta.env.VITE_API_BASE;
 // ... [Keep StatusBadge, LeadStatusBadge, StatsCard, PropertyCard, LeadCard, and COLORS exactly as they were] ...
 // (I am omitting the sub-components here for brevity, assume they are present as in your original code)
 
+const resolveImageSrc = (img) => {
+  if (!img) return "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400";
+  const s = String(img).trim();
+  const lower = s.toLowerCase();
+  if (lower.startsWith("data:") || lower.startsWith("http")) return s;
+  if (s.startsWith("/uploads")) return `${API_BASE}${s}`;
+  return `${API_BASE}/uploads/${s}`;
+};
+
 // Status badge component
 const StatusBadge = ({ status }) => {
   const statusConfig = {
@@ -143,7 +152,7 @@ const PropertyCard = ({ property, onEdit, onDelete, onViewDetails, onViewLeads }
         const residentialCategories = ['exterior', 'livingRoom', 'bedroom', 'hall', 'balcony', 'kitchen'];
         for (const cat of residentialCategories) {
           if (property.categorizedImages.residential[cat]?.length > 0) {
-            return property.categorizedImages.residential[cat][0];
+            return resolveImageSrc(property.categorizedImages.residential[cat][0]);
           }
         }
       }
@@ -151,15 +160,15 @@ const PropertyCard = ({ property, onEdit, onDelete, onViewDetails, onViewLeads }
         const commercialCategories = ['facade', 'reception', 'workArea', 'cabin', 'shopFloor'];
         for (const cat of commercialCategories) {
           if (property.categorizedImages.commercial[cat]?.length > 0) {
-            return property.categorizedImages.commercial[cat][0];
+            return resolveImageSrc(property.categorizedImages.commercial[cat][0]);
           }
         }
       }
     }
     if (property.images?.length > 0) {
-      return property.images[0];
+      return resolveImageSrc(property.images[0]);
     }
-    return "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400";
+    return resolveImageSrc(null);
   };
 
   return (
@@ -173,6 +182,11 @@ const PropertyCard = ({ property, onEdit, onDelete, onViewDetails, onViewLeads }
         <img
           src={getMainImage()}
           alt={property.title}
+          loading="lazy"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = resolveImageSrc(null);
+          }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute top-3 left-3">
@@ -800,7 +814,7 @@ export default function MyProperties() {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mt-6 bg-gray-100 p-1 rounded-xl w-fit">
+          <div className="flex gap-1 mt-6 bg-gray-100 p-1 rounded-xl w-full md:w-fit overflow-x-auto">
             {[
               { key: "properties", label: "Properties", icon: Home },
               { key: "leads", label: "Leads", icon: Users, badge: stats.newLeads },

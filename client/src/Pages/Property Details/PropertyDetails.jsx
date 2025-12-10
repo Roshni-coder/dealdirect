@@ -373,27 +373,41 @@ const DimensionsSection = ({
   </div>
 );
 
-const AmenitiesSection = ({ property }) => (
-  <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5">
-    {(property.amenities || property.selectedAmenities).map((amenity, idx) => (
-      <div
-        key={idx}
-        className="flex items-center gap-2 text-sm text-slate-700"
-      >
-        <CheckCircleIcon className="w-5 h-5 text-emerald-500" />
-        <span className="capitalize">
-          {amenity.replace(/([A-Z])/g, " $1").trim()}
-        </span>
-      </div>
-    ))}
-  </div>
-);
+const AmenitiesSection = ({ property }) => {
+  const list = Array.isArray(property.amenities)
+    ? property.amenities
+    : Array.isArray(property.selectedAmenities)
+    ? property.selectedAmenities
+    : [];
 
-const ExtrasSection = ({ property }) => (
-  <div className="flex flex-wrap gap-2.5">
-    {Object.entries(property.extras)
-      .filter(([, val]) => !!val)
-      .map(([key]) => (
+  if (list.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5">
+      {list.map((amenity, idx) => (
+        <div
+          key={idx}
+          className="flex items-center gap-2 text-sm text-slate-700"
+        >
+          <CheckCircleIcon className="w-5 h-5 text-emerald-500" />
+          <span className="capitalize">
+            {String(amenity).replace(/([A-Z])/g, " $1").trim()}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ExtrasSection = ({ property }) => {
+  if (!property.extras || typeof property.extras !== "object") return null;
+
+  const entries = Object.entries(property.extras).filter(([, val]) => !!val);
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2.5">
+      {entries.map(([key]) => (
         <span
           key={key}
           className="px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-700 rounded-full text-xs font-medium capitalize"
@@ -401,8 +415,9 @@ const ExtrasSection = ({ property }) => (
           {key.replace(/([A-Z])/g, " $1").trim()}
         </span>
       ))}
-  </div>
-);
+    </div>
+  );
+};
 
 const CommercialConfigSection = ({ property, fields }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-12">
@@ -424,24 +439,28 @@ const CommercialConfigSection = ({ property, fields }) => (
   </div>
 );
 
-const LegalSection = ({ property, isCommercial }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-12">
-    <Row label="RERA ID" value={property.legal.reraId || "N/A"} />
-    <Row
-      label="Occupancy Certificate"
-      value={property.legal.occupancyCertificate ? "Yes" : "No"}
-    />
-    {isCommercial && (
-      <>
-        <Row
-          label="Trade License"
-          value={property.legal.tradeLicense ? "Yes" : "No"}
-        />
-        <Row label="Fire NOC" value={property.legal.fireNoc ? "Yes" : "No"} />
-      </>
-    )}
-  </div>
-);
+const LegalSection = ({ property, isCommercial }) => {
+  const legal = property.legal || {};
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-12">
+      <Row label="RERA ID" value={legal.reraId || "N/A"} />
+      <Row
+        label="Occupancy Certificate"
+        value={legal.occupancyCertificate ? "Yes" : "No"}
+      />
+      {isCommercial && (
+        <>
+          <Row
+            label="Trade License"
+            value={legal.tradeLicense ? "Yes" : "No"}
+          />
+          <Row label="Fire NOC" value={legal.fireNoc ? "Yes" : "No"} />
+        </>
+      )}
+    </div>
+  );
+};
 
 const EmiSection = ({
   loanAmount,

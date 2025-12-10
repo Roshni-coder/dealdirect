@@ -318,7 +318,7 @@ const ChatWidget = () => {
   if (!isChatOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 w-[380px] h-[550px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden z-50">
+    <div className="fixed bottom-3 inset-x-2 sm:bottom-4 sm:right-4 sm:left-auto w-[calc(100%-1rem)] sm:w-[380px] h-[65vh] sm:h-[550px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden z-[12000]">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 flex items-center justify-between">
         {showConversations ? (
