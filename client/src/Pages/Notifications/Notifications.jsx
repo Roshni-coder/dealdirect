@@ -10,6 +10,7 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [markingAll, setMarkingAll] = useState(false);
+  const [markingOneId, setMarkingOneId] = useState(null);
   const navigate = useNavigate();
 
   const fetchNotifications = async () => {
@@ -41,6 +42,25 @@ const Notifications = () => {
     fetchNotifications();
   }, []);
 
+  const markOneAsRead = async (id) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      setMarkingOneId(id);
+      await axios.patch(`${API_BASE}/api/notifications/${id}/read`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+      );
+    } catch (err) {
+      console.error("Mark notification read error", err);
+      // Don't block navigation if this fails; keep silent or show light toast
+    } finally {
+      setMarkingOneId(null);
+    }
+  };
+
   const handleMarkAllRead = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -58,7 +78,12 @@ const Notifications = () => {
     }
   };
 
-  const handleItemClick = (n) => {
+  const handleItemClick = async (n) => {
+    if (!n.isRead) {
+      // Fire-and-forget; UI is updated via state
+      markOneAsRead(n._id);
+    }
+
     if (n.type === "saved-search-match" && n.data?.propertyId) {
       navigate(`/properties/${n.data.propertyId}`);
     } else if (n.type === "saved-search" && n.data?.savedSearchId) {
