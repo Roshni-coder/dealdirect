@@ -19,6 +19,7 @@ import Notifications from "./Pages/Notifications/Notifications.jsx";
 import PrivacyPolicy from "./Pages/Privacy/Privacy.jsx";
 import TermsAndConditions from "./Pages/Terms&Conditions/Terms&Conditions.jsx";
 import WhyUs from "./Pages/WhyUs/WhyUs.jsx";
+import Pricing from "./Pages/Pricing/Pricing.jsx";
 import ScrollToTop from "./Components/ScrollToTop/ScrollToTop.jsx";
 import { ChatProvider } from "./context/ChatContext.jsx";
 import ChatWidget from "./Components/Chat/ChatWidget.jsx";
@@ -49,6 +50,7 @@ function App() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsAndConditions />} />
             <Route path="/why-us" element={<WhyUs />} />
+            <Route path="/pricing" element={<Pricing />} />
           </Routes>
           <Footer />
           <ChatButton />

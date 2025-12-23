@@ -1149,14 +1149,19 @@ const PropertyPage = () => {
                       </span>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleSaveSearchClick}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-red-200 text-[11px] font-semibold text-red-600 hover:bg-red-50 shadow-sm"
-                  >
-                    <FaBell className="text-xs" />
-                    Save this search & alerts
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleSaveSearchClick}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-red-200 text-[11px] font-semibold text-red-600 hover:bg-red-50 shadow-sm"
+                    >
+                      <FaBell className="text-xs" />
+                      Save this search & alerts
+                    </button>
+                    <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] font-semibold text-emerald-700">
+                      Free during beta
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
@@ -1164,7 +1169,7 @@ const PropertyPage = () => {
             {showSaveSearch && (
               <div className="mb-6 max-w-xl ml-auto bg-white border border-red-100 rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-slate-700 mb-1">Save this search</p>
+                  <p className="text-xs font-semibold text-slate-700 mb-1">Save this search (with alerts)</p>
                   <input
                     type="text"
                     value={savedSearchName}
@@ -1181,6 +1186,10 @@ const PropertyPage = () => {
                     />
                     Email me when new properties match this search
                   </label>
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    Alerts are currently free as part of our Premium Tools beta and may later move into a small paid
+                    add-on. We&apos;ll always show clear pricing before that.
+                  </p>
                 </div>
                 <div className="flex sm:flex-col gap-2 sm:items-end">
                   <button

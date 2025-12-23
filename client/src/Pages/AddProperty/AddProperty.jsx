@@ -1905,6 +1905,19 @@ export default function AddProperty() {
                         </div>
                     </div>
                 </div>
+
+                <div className="max-w-3xl mx-auto text-xs sm:text-sm text-gray-500 flex flex-wrap items-center justify-between gap-2">
+                    <p>
+                        Want higher visibility or more active listings over time? Explore our owner Pricing & Plans.
+                    </p>
+                    <a
+                        href="/pricing"
+                        className="inline-flex items-center px-3 py-1.5 rounded-full border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 text-[11px] sm:text-xs"
+                    >
+                        View Pricing & Plans
+                        <span className="ml-1 text-[13px]">→</span>
+                    </a>
+                </div>
             </div>
         );
     };

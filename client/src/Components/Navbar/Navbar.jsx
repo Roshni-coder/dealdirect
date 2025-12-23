@@ -616,6 +616,7 @@ function Navbar() {
                         <div>
                           <h3 className="font-bold text-gray-900 mb-3 text-sm">Company</h3>
                           <ul className="space-y-2">
+                            <li><Link to="/pricing" className="text-gray-700 hover:text-red-600 text-sm">Pricing & Plans</Link></li>
                             <li><Link to="/about" className="text-gray-700 hover:text-red-600 text-sm">About Us</Link></li>
                             <li><Link to="/contact" className="text-gray-700 hover:text-red-600 text-sm">Contact Us</Link></li>
                           </ul>
@@ -638,6 +639,12 @@ function Navbar() {
                 <>
                   <Link to="/properties" className={`${navTextClass} hover:text-red-600 font-medium text-[15px] transition-colors duration-200`}>
                     Properties
+                  </Link>
+                  <Link
+                    to="/pricing"
+                    className={`${navTextClass} hover:text-red-600 font-medium text-[15px] transition-colors duration-200`}
+                  >
+                    Pricing
                   </Link>
                   <Link
                     to="/agreements"
@@ -868,6 +875,15 @@ function Navbar() {
               >
                 <BsBuilding size={20} />
                 Properties
+              </Link>
+
+              <Link
+                to="/pricing"
+                onClick={toggleMenu}
+                className="flex items-center gap-4 px-4 py-3 text-slate-700 font-medium rounded-xl hover:bg-red-50 hover:text-red-600 transition"
+              >
+                <AiOutlineFileText size={20} />
+                Pricing & Plans
               </Link>
 
               <button
